@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoGrid AI - Energy Forecast Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            font-family: 'Inter', sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            transform: translateY(-2px);
+        }
+        .weather-card {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+        .energy-high {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        .energy-medium {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        .energy-low {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+        .forecast-card {
+            transition: all 0.3s;
+        }
+        .forecast-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white">
+    <!-- Header -->
+    <header class="glass-card p-4 mb-6">
+        <div class="container mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold">⚡ Energy Forecast Dashboard</h1>
+                <p class="text-slate-300 mt-1">30-Day Energy Production & Weather Analysis</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <button onclick="generateForecast()" class="btn-primary">
+                    <i class="fas fa-sync-alt mr-2"></i>Generate Forecast
+                </button>
+                <a href="/logout" class="text-white hover:text-slate-300">Logout</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Tomorrow's Weather & Production -->
+    <section class="container mx-auto px-4 mb-8">
+        <h2 class="text-2xl font-bold mb-6">🌤️ Tomorrow's Energy Production</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Weather Card -->
+            <div class="weather-card glass-card p-6 rounded-xl forecast-card">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">Weather Conditions</h3>
+                        <p class="text-3xl font-bold" id="tomorrow-temp">--°C</p>
+                        <p class="text-slate-200" id="tomorrow-condition">Loading...</p>
+                    </div>
+                    <i class="fas fa-cloud-sun text-4xl text-yellow-300"></i>
+                </div>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <i class="fas fa-wind mr-1"></i>
+                        <span id="tomorrow-wind">-- km/h</span>
+                    </div>
+                    <div>
+                        <i class="fas fa-tint mr-1"></i>
+                        <span id="tomorrow-humidity">--%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Solar Production -->
+            <div class="energy-high glass-card p-6 rounded-xl forecast-card">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">☀️ Solar Production</h3>
+                        <p class="text-3xl font-bold" id="tomorrow-solar">-- kWh</p>
+                        <p class="text-slate-200">Peak production</p>
+                    </div>
+                    <i class="fas fa-solar-panel text-4xl text-yellow-300"></i>
+                </div>
+                <div class="text-sm">
+                    <div class="flex justify-between">
+                        <span>Efficiency:</span>
+                        <span id="solar-efficiency">--%</span>
+                    </div>
+                    <div class="flex justify-between mt-1">
+                        <span>Peak hours:</span>
+                        <span id="solar-peak-hours">-- hrs</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wind Production -->
+            <div class="energy-medium glass-card p-6 rounded-xl forecast-card">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 class="text-xl font-bold mb-2">💨 Wind Production</h3>
+                        <p class="text-3xl font-bold" id="tomorrow-wind-energy">-- kWh</p>
+                        <p class="text-slate-200">Estimated output</p>
+                    </div>
+                    <i class="fas fa-wind text-4xl text-blue-300"></i>
+                </div>
+                <div class="text-sm">
+                    <div class="flex justify-between">
+                        <span>Capacity:</span>
+                        <span id="wind-capacity">--%</span>
+                    </div>
+                    <div class="flex justify-between mt-1">
+                        <span>Speed range:</span>
+                        <span id="wind-speed-range">-- km/h</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 30-Day Forecast Summary -->
+    <section class="container mx-auto px-4 mb-8">
+        <h2 class="text-2xl font-bold mb-6">📊 30-Day Energy Forecast Summary</h2>
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div class="glass-card p-4 rounded-lg text-center">
+                <i class="fas fa-calendar-alt text-2xl text-blue-400 mb-2"></i>
+                <h4 class="text-sm font-medium text-slate-300">Total Days</h4>
+                <p class="text-2xl font-bold">30</p>
+            </div>
+            <div class="glass-card p-4 rounded-lg text-center">
+                <i class="fas fa-bolt text-2xl text-yellow-400 mb-2"></i>
+                <h4 class="text-sm font-medium text-slate-300">Total Energy</h4>
+                <p class="text-2xl font-bold" id="total-energy">0 kWh</p>
+            </div>
+            <div class="glass-card p-4 rounded-lg text-center">
+                <i class="fas fa-chart-line text-2xl text-green-400 mb-2"></i>
+                <h4 class="text-sm font-medium text-slate-300">Daily Average</h4>
+                <p class="text-2xl font-bold" id="daily-average">0 kWh</p>
+            </div>
+            <div class="glass-card p-4 rounded-lg text-center">
+                <i class="fas fa-arrow-up text-2xl text-orange-400 mb-2"></i>
+                <h4 class="text-sm font-medium text-slate-300">Peak Day</h4>
+                <p class="text-2xl font-bold" id="peak-day">0 kWh</p>
+            </div>
+            <div class="glass-card p-4 rounded-lg text-center">
+                <i class="fas fa-arrow-down text-2xl text-red-400 mb-2"></i>
+                <h4 class="text-sm font-medium text-slate-300">Low Day</h4>
+                <p class="text-2xl font-bold" id="low-day">0 kWh</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 30-Day Forecast Chart -->
+    <section class="container mx-auto px-4 mb-8">
+        <div class="glass-card p-6 rounded-xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">📈 30-Day Energy Production Forecast</h2>
+                <div class="flex gap-2">
+                    <button onclick="changeChartView('all')" class="px-4 py-2 bg-blue-600 rounded-lg text-sm hover:bg-blue-700">All Sources</button>
+                    <button onclick="changeChartView('solar')" class="px-4 py-2 bg-slate-600 rounded-lg text-sm hover:bg-slate-700">Solar Only</button>
+                    <button onclick="changeChartView('wind')" class="px-4 py-2 bg-slate-600 rounded-lg text-sm hover:bg-slate-700">Wind Only</button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="forecastChart"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- Daily Forecast Table -->
+    <section class="container mx-auto px-4 mb-8">
+        <div class="glass-card p-6 rounded-xl">
+            <h2 class="text-2xl font-bold mb-6">📅 Daily Energy Production Details</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-white/30">
+                            <th class="pb-3 text-slate-300">Date</th>
+                            <th class="pb-3 text-slate-300">Day</th>
+                            <th class="pb-3 text-slate-300">Solar (kWh)</th>
+                            <th class="pb-3 text-slate-300">Wind (kWh)</th>
+                            <th class="pb-3 text-slate-300">Total (kWh)</th>
+                            <th class="pb-3 text-slate-300">Efficiency</th>
+                            <th class="pb-3 text-slate-300">Weather</th>
+                        </tr>
+                    </thead>
+                    <tbody id="forecast-table">
+                        <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        let forecastChart = null;
+        let forecastData = [];
+        let currentChartView = 'all';
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Energy Forecast Dashboard loaded');
+            initializeChart();
+            loadForecastData();
+            updateTomorrowWeather();
+        });
+
+        // Initialize chart
+        function initializeChart() {
+            const ctx = document.getElementById('forecastChart').getContext('2d');
+            forecastChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Solar Energy',
+                            data: [],
+                            borderColor: 'rgb(255, 206, 86)',
+                            backgroundColor: 'rgba(255, 206, 86, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Wind Energy',
+                            data: [],
+                            borderColor: 'rgb(54, 162, 235)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Total Energy',
+                            data: [],
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                            tension: 0.4,
+                            borderWidth: 3,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: { 
+                            labels: { color: 'white', font: { size: 14 } },
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' kWh';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            ticks: { color: 'white', font: { size: 12 } },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: { 
+                            ticks: { color: 'white', font: { size: 12 } },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                            title: {
+                                display: true,
+                                text: 'Energy (kWh)',
+                                color: 'white'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Generate forecast
+        function generateForecast() {
+            console.log('Generating 30-day energy forecast...');
+            
+            const button = event.target;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
+            button.disabled = true;
+
+            fetch('/forecast_prophet')
+                .then(r => {
+                    if (!r.ok) throw new Error(`HTTP error! status: ${r.status}`);
+                    return r.json();
+                })
+                .then(data => {
+                    console.log('Forecast data received:', data);
+                    
+                    if (data && data.forecast && data.statistics) {
+                        forecastData = data.forecast;
+                        updateForecastDisplay(data.forecast);
+                        updateForecastTable(data.forecast);
+                        updateTomorrowProduction(data.forecast[0]);
+                        alert('✅ 30-day energy forecast generated successfully!');
+                    } else {
+                        throw new Error('Invalid data format received');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('❌ Error generating forecast: ' + error.message);
+                })
+                .finally(() => {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                });
+        }
+
+        // Load forecast data
+        function loadForecastData() {
+            fetch('/forecast')
+                .then(r => r.json())
+                .then(data => {
+                    if (Array.isArray(data) && data.length > 0) {
+                        forecastData = data;
+                        updateForecastDisplay(data);
+                        updateForecastTable(data);
+                        updateTomorrowProduction(data[0]);
+                    }
+                })
+                .catch(error => console.error('Error loading forecast data:', error));
+        }
+
+        // Update forecast display
+        function updateForecastDisplay(data) {
+            if (!forecastChart || !data.length) return;
+
+            const labels = data.map(d => d.date);
+            const solarData = data.map(d => parseFloat(d.solar_energy) || 0);
+            const windData = data.map(d => parseFloat(d.wind_energy) || 0);
+            const totalData = data.map(d => parseFloat(d.total_generation) || 0);
+
+            forecastChart.data.labels = labels;
+            forecastChart.data.datasets[0].data = solarData;
+            forecastChart.data.datasets[1].data = windData;
+            forecastChart.data.datasets[2].data = totalData;
+            forecastChart.update();
+
+            // Update summary statistics
+            const totalEnergy = totalData.reduce((sum, val) => sum + val, 0);
+            const dailyAverage = totalEnergy / data.length;
+            const peakDay = Math.max(...totalData);
+            const lowDay = Math.min(...totalData);
+
+            document.getElementById('total-energy').textContent = totalEnergy.toFixed(1) + ' kWh';
+            document.getElementById('daily-average').textContent = dailyAverage.toFixed(1) + ' kWh';
+            document.getElementById('peak-day').textContent = peakDay.toFixed(1) + ' kWh';
+            document.getElementById('low-day').textContent = lowDay.toFixed(1) + ' kWh';
+        }
+
+        // Update forecast table
+        function updateForecastTable(data) {
+            const tbody = document.getElementById('forecast-table');
+            tbody.innerHTML = '';
+
+            const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+            data.forEach((row, index) => {
+                const date = new Date(row.date);
+                const dayName = dayNames[date.getDay()];
+                const total = parseFloat(row.total_generation || 0);
+                const efficiency = total > 15 ? 'High' : total > 8 ? 'Medium' : 'Low';
+                const weather = getWeatherCondition(total);
+
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-white/20 hover:bg-white/10 transition-colors';
+                tr.innerHTML = `
+                    <td class="py-3">${row.date}</td>
+                    <td class="py-3">${dayName}</td>
+                    <td class="py-3">${parseFloat(row.solar_energy || 0).toFixed(2)}</td>
+                    <td class="py-3">${parseFloat(row.wind_energy || 0).toFixed(2)}</td>
+                    <td class="py-3 font-semibold">${total.toFixed(2)}</td>
+                    <td class="py-3">
+                        <span class="px-2 py-1 rounded text-xs ${
+                            efficiency === 'High' ? 'bg-green-600' : 
+                            efficiency === 'Medium' ? 'bg-yellow-600' : 'bg-red-600'
+                        }">
+                            ${efficiency}
+                        </span>
+                    </td>
+                    <td class="py-3">${weather}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Update tomorrow's weather
+        function updateTomorrowWeather() {
+            // Simulated weather data - in real app, this would come from weather API
+            document.getElementById('tomorrow-temp').textContent = '22°C';
+            document.getElementById('tomorrow-condition').textContent = 'Partly Cloudy';
+            document.getElementById('tomorrow-wind').textContent = '15 km/h';
+            document.getElementById('tomorrow-humidity').textContent = '65%';
+        }
+
+        // Update tomorrow's production
+        function updateTomorrowProduction(tomorrowData) {
+            if (!tomorrowData) return;
+
+            const solar = parseFloat(tomorrowData.solar_energy || 0);
+            const wind = parseFloat(tomorrowData.wind_energy || 0);
+
+            document.getElementById('tomorrow-solar').textContent = solar.toFixed(1) + ' kWh';
+            document.getElementById('tomorrow-wind-energy').textContent = wind.toFixed(1) + ' kWh';
+            
+            // Calculate efficiency metrics
+            const solarEfficiency = Math.min(95, (solar / 30) * 100);
+            const windCapacity = Math.min(100, (wind / 10) * 100);
+            
+            document.getElementById('solar-efficiency').textContent = solarEfficiency.toFixed(0) + '%';
+            document.getElementById('solar-peak-hours').textContent = '6-8 hrs';
+            document.getElementById('wind-capacity').textContent = windCapacity.toFixed(0) + '%';
+            document.getElementById('wind-speed-range').textContent = '12-18 km/h';
+        }
+
+        // Change chart view
+        function changeChartView(view) {
+            currentChartView = view;
+            
+            // Update button styles
+            document.querySelectorAll('button').forEach(btn => {
+                if (btn.textContent.toLowerCase().includes(view) || 
+                    (view === 'all' && btn.textContent.includes('All'))) {
+                    btn.className = 'px-4 py-2 bg-blue-600 rounded-lg text-sm hover:bg-blue-700';
+                } else if (btn.textContent.includes('Only')) {
+                    btn.className = 'px-4 py-2 bg-slate-600 rounded-lg text-sm hover:bg-slate-700';
+                }
+            });
+
+            // Update chart visibility
+            if (view === 'solar') {
+                forecastChart.data.datasets[0].hidden = false;
+                forecastChart.data.datasets[1].hidden = true;
+                forecastChart.data.datasets[2].hidden = true;
+            } else if (view === 'wind') {
+                forecastChart.data.datasets[0].hidden = true;
+                forecastChart.data.datasets[1].hidden = false;
+                forecastChart.data.datasets[2].hidden = true;
+            } else {
+                forecastChart.data.datasets[0].hidden = false;
+                forecastChart.data.datasets[1].hidden = false;
+                forecastChart.data.datasets[2].hidden = false;
+            }
+            
+            forecastChart.update();
+        }
+
+        // Get weather condition based on energy production
+        function getWeatherCondition(totalEnergy) {
+            if (totalEnergy > 15) return '☀️ Sunny';
+            if (totalEnergy > 10) return '⛅ Partly Cloudy';
+            if (totalEnergy > 5) return '☁️ Cloudy';
+            return '🌧️ Rainy';
+        }
+    </script>
+</body>
+</html>

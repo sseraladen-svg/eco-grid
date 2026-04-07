@@ -1,0 +1,33 @@
+body{
+background:#0a0a0a;
+color:white;
+font-family:Arial;
+text-align:center;
+}
+
+.card{
+width:300px;
+margin:auto;
+margin-top:120px;
+padding:30px;
+background:#111;
+border-radius:10px;
+}
+
+input,button{
+display:block;
+width:90%;
+margin:10px auto;
+padding:10px;
+}
+
+table{
+margin:auto;
+margin-top:30px;
+border-collapse:collapse;
+}
+
+th,td{
+border:1px solid white;
+padding:10px;
+}

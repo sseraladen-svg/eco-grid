@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoGrid AI Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body { 
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #0f0f23 100%);
+            min-height: 100vh;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #0f0f23 100%);
+        }
+        
+        .animated-bg::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            z-index: 1;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            animation: rotate 30s linear infinite;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Glass Card Effect */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.7);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        /* Menu Button Styles */
+        .menu-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .menu-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+        
+        /* Side Dashboard Styles */
+        .side-dashboard {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            transition: left 0.3s ease;
+            z-index: 999;
+            overflow-y: auto;
+        }
+        
+        .side-dashboard.open {
+            left: 0;
+        }
+        
+        .side-dashboard-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .close-menu {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 5px;
+            transition: background 0.3s ease;
+        }
+        
+        .close-menu:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .menu-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-left: 3px solid transparent;
+        }
+        
+        .menu-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: #3b82f6;
+        }
+        
+        .menu-item.active {
+            background: rgba(59, 130, 246, 0.2);
+            border-left-color: #3b82f6;
+        }
+        
+        /* Main Content Styles */
+        .main-content {
+            margin-left: 0;
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+        
+        .main-content.shifted {
+            margin-left: 300px;
+        }
+        
+        /* KPI Card Styles */
+        .kpi-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .kpi-card:hover::before {
+            opacity: 1;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(59, 130, 246, 0.3);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
+        }
+        
+        /* Chart Container Styles */
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+        
+        /* Alert Styles */
+        .alert {
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .alert-success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #22c55e;
+        }
+        
+        .alert-warning {
+            background: rgba(251, 191, 36, 0.2);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            color: #fbbf24;
+        }
+        
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+        }
+        
+        .alert-info {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #3b82f6;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        /* Button Styles */
+        .btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: white;
+            box-shadow: 0 4px 20px rgba(251, 191, 36, 0.4);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Data Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .data-table th {
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+            color: #3b82f6;
+        }
+        
+        .data-table tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        /* Hidden class */
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Loading Spinner */
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid #3b82f6;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .side-dashboard {
+                width: 250px;
+                left: -250px;
+            }
+            
+            .main-content.shifted {
+                margin-left: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg"></div>
+    
+    <!-- Menu Button -->
+    <button class="menu-button" onclick="toggleMenu()">
+        <i class="fas fa-bars text-white"></i>
+    </button>
+    
+    <!-- Side Dashboard -->
+    <div id="sideDashboard" class="side-dashboard">
+        <div class="side-dashboard-header">
+            <h2 class="text-xl font-bold text-white">EcoGrid AI</h2>
+            <button class="close-menu" onclick="toggleMenu()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="menu-item active" onclick="showSection('overview')">
+            <i class="fas fa-dashboard"></i>
+            <span>Overview</span>
+        </div>
+        
+        <div class="menu-item" onclick="showSection('forecast')">
+            <i class="fas fa-chart-line"></i>
+            <span>Forecast</span>
+        </div>
+        
+        <div class="menu-item" onclick="showSection('chatbot')">
+            <i class="fas fa-comments"></i>
+            <span>ChatBot</span>
+        </div>
+        
+        <div class="menu-item" onclick="showSection('smartheal')">
+            <i class="fas fa-heartbeat"></i>
+            <span>SmartHeal</span>
+        </div>
+        
+        <div class="menu-item" onclick="showSection('multigrid')">
+            <i class="fas fa-th"></i>
+            <span>MultiGrid</span>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div id="mainContent" class="main-content">
+        <!-- Alert Container -->
+        <div id="alertContainer" style="position: fixed; top: 20px; right: 20px; z-index: 1001;"></div>
+        
+        <!-- Overview Section -->
+        <div id="overviewSection">
+            <div class="mb-8">
+                <h1 class="text-4xl font-bold text-white mb-2">EcoGrid AI Dashboard</h1>
+                <p class="text-gray-400">Real-time monitoring and AI-powered forecasting based on your system parameters</p>
+                <div class="flex gap-4 mt-4">
+                    <button class="btn btn-primary" onclick="refreshData()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh Data
+                    </button>
+                    <button class="btn btn-success" onclick="trainProphetModel()">
+                        <i class="fas fa-brain"></i>
+                        Train AI
+                    </button>
+                    <button class="btn btn-warning" onclick="goToSetup()">
+                        <i class="fas fa-cog"></i>
+                        Update Parameters
+                    </button>
+                </div>
+            </div>
+            
+            <!-- KPI Cards with Real Predicted Values -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="kpi-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Solar Generation</p>
+                            <p class="text-2xl font-bold text-yellow-400" id="solarStat">0 kWh</p>
+                            <p class="text-xs text-gray-500 mt-1">Based on panel specs</p>
+                        </div>
+                        <i class="fas fa-solar-panel text-3xl text-yellow-400"></i>
+                    </div>
+                </div>
+                
+                <div class="kpi-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Wind Generation</p>
+                            <p class="text-2xl font-bold text-blue-400" id="windStat">0 kWh</p>
+                            <p class="text-xs text-gray-500 mt-1">Based on turbine specs</p>
+                        </div>
+                        <i class="fas fa-wind text-3xl text-blue-400"></i>
+                    </div>
+                </div>
+                
+                <div class="kpi-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Total Demand</p>
+                            <p class="text-2xl font-bold text-green-400" id="demandStat">0 kWh</p>
+                            <p class="text-xs text-gray-500 mt-1">Based on usage profile</p>
+                        </div>
+                        <i class="fas fa-bolt text-3xl text-green-400"></i>
+                    </div>
+                </div>
+                
+                <div class="kpi-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">System Efficiency</p>
+                            <p class="text-2xl font-bold text-purple-400" id="efficiencyStat">0%</p>
+                            <p class="text-xs text-gray-500 mt-1">Generation/Demand</p>
+                        </div>
+                        <i class="fas fa-chart-line text-3xl text-purple-400"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Charts with Real Forecast Data -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="glass-card p-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">Energy Generation Forecast</h3>
+                    <div class="chart-container">
+                        <canvas id="generationChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="glass-card p-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">Demand vs Supply Analysis</h3>
+                    <div class="chart-container">
+                        <canvas id="demandChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- System Statistics -->
+            <div class="glass-card p-6">
+                <h2 class="text-2xl font-bold text-white mb-6">System Statistics & Insights</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="text-center">
+                        <p class="text-gray-400">Last Updated</p>
+                        <p class="text-xl font-semibold text-white" id="lastUpdate">--:--:--</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-gray-400">Forecast Days</p>
+                        <p class="text-xl font-semibold text-white" id="forecastDays">0</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-gray-400">Avg. Daily Generation</p>
+                        <p class="text-xl font-semibold text-green-400" id="avgGeneration">0 kWh</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-gray-400">Avg. Daily Demand</p>
+                        <p class="text-xl font-semibold text-blue-400" id="avgDemand">0 kWh</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Forecast Section -->
+        <div id="forecastSection" class="hidden">
+            <div class="glass-card p-6">
+                <h2 class="text-2xl font-bold text-white mb-6">30-Day Energy Forecast</h2>
+                <div id="loadingForecast" class="loading-spinner hidden"></div>
+                <div id="forecastContent" class="hidden">
+                    <div class="chart-container mb-6">
+                        <canvas id="forecastChart"></canvas>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Solar (kWh)</th>
+                                    <th>Wind (kWh)</th>
+                                    <th>Total (kWh)</th>
+                                    <th>Demand (kWh)</th>
+                                    <th>Battery (kWh)</th>
+                                    <th>Export (kWh)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="forecastTableBody">
+                                <!-- Real forecast data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="noDataMessage" class="text-center text-gray-400 py-8">
+                    <i class="fas fa-chart-line text-4xl mb-4"></i>
+                    <p class="text-lg">No forecast data available</p>
+                    <p class="text-sm mt-2">Please complete the setup process to generate forecasts</p>
+                    <button onclick="goToSetup()" class="btn btn-primary mt-4">
+                        <i class="fas fa-cog"></i>
+                        Go to Setup
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ChatBot Section -->
+        <div id="chatbotSection" class="hidden">
+            <div class="glass-card p-6">
+                <h2 class="text-2xl font-bold text-white mb-6">AI Energy Assistant</h2>
+                <div id="chatMessages" class="bg-black/30 rounded-lg p-4 h-96 overflow-y-auto mb-4">
+                    <!-- Chat messages will appear here -->
+                </div>
+                <div class="flex gap-2">
+                    <input type="text" id="chatInput" placeholder="Ask me anything about your energy system..." 
+                           class="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
+                           onkeypress="handleChatKeyPress(event)">
+                    <button onclick="sendMessage()" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                        Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Global variables
+        let generationChart, demandChart, forecastChart;
+        let forecastData = [];
+        let currentForecastJSON = null;
+        let isLoading = false;
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            loadRealForecastData();
+            updateLastUpdateTime();
+            setInterval(updateLastUpdateTime, 60000); // Update every minute
+        });
+        
+        // Load REAL forecast data from backend
+        function loadRealForecastData() {
+            if (isLoading) return;
+            isLoading = true;
+            
+            // Show loading state
+            showAlert('Loading forecast data from your system parameters...', 'info');
+            document.getElementById('loadingForecast').classList.remove('hidden');
+            document.getElementById('forecastContent').classList.add('hidden');
+            document.getElementById('noDataMessage').classList.add('hidden');
+            
+            // Load real forecast data from API
+            fetch('/forecast')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(forecast => {
+                    console.log('✅ Real forecast data loaded from API');
+                    forecastData = forecast;
+                    updateDashboard(forecast);
+                    showAlert('Forecast data loaded successfully!', 'success');
+                    
+                    // Update forecast section
+                    document.getElementById('loadingForecast').classList.add('hidden');
+                    document.getElementById('forecastContent').classList.remove('hidden');
+                    document.getElementById('noDataMessage').classList.add('hidden');
+                })
+                .catch(error => {
+                    console.error('❌ Error loading forecast data:', error.message);
+                    showAlert('Failed to load forecast data. Please complete setup first.', 'danger');
+                    
+                    // Show no data message
+                    document.getElementById('loadingForecast').classList.add('hidden');
+                    document.getElementById('forecastContent').classList.add('hidden');
+                    document.getElementById('noDataMessage').classList.remove('hidden');
+                    
+                    // Update dashboard with empty data
+                    updateDashboard([]);
+                })
+                .finally(() => {
+                    isLoading = false;
+                });
+        }
+        
+        // Update dashboard with real predicted values
+        function updateDashboard(forecast) {
+            if (forecast && forecast.length > 0) {
+                updateStats(forecast);
+                updateCharts(forecast);
+                updateForecastTable(forecast);
+                currentForecastJSON = { forecast: forecast };
+                console.log(`✅ Dashboard updated with ${forecast.length} real predicted records!`);
+            } else {
+                // Show empty state
+                updateEmptyDashboard();
+            }
+        }
+        
+        // Update empty dashboard state
+        function updateEmptyDashboard() {
+            document.getElementById('solarStat').textContent = '0 kWh';
+            document.getElementById('windStat').textContent = '0 kWh';
+            document.getElementById('demandStat').textContent = '0 kWh';
+            document.getElementById('efficiencyStat').textContent = '0%';
+            document.getElementById('forecastDays').textContent = '0';
+            document.getElementById('avgGeneration').textContent = '0 kWh';
+            document.getElementById('avgDemand').textContent = '0 kWh';
+            
+            // Clear charts
+            if (generationChart) {
+                generationChart.data.labels = [];
+                generationChart.data.datasets[0].data = [];
+                generationChart.data.datasets[1].data = [];
+                generationChart.update();
+            }
+            
+            if (demandChart) {
+                demandChart.data.labels = [];
+                demandChart.data.datasets[0].data = [];
+                demandChart.data.datasets[1].data = [];
+                demandChart.update();
+            }
+        }
+        
+        // Update statistics with real predicted values
+        function updateStats(forecast) {
+            if (forecast.length === 0) return;
+            
+            const latest = forecast[forecast.length - 1];
+            document.getElementById('solarStat').textContent = `${latest.solar_energy?.toFixed(1) || 0} kWh`;
+            document.getElementById('windStat').textContent = `${latest.wind_energy?.toFixed(1) || 0} kWh`;
+            document.getElementById('demandStat').textContent = `${latest.demand?.toFixed(1) || 0} kWh`;
+            
+            // Calculate system efficiency
+            const totalGeneration = (latest.solar_energy || 0) + (latest.wind_energy || 0);
+            const efficiency = latest.demand > 0 ? ((totalGeneration / latest.demand) * 100).toFixed(1) : 0;
+            document.getElementById('efficiencyStat').textContent = `${efficiency}%`;
+            
+            // Calculate averages
+            const avgGen = forecast.reduce((sum, item) => sum + (item.solar_energy || 0) + (item.wind_energy || 0), 0) / forecast.length;
+            const avgDem = forecast.reduce((sum, item) => sum + (item.demand || 0), 0) / forecast.length;
+            
+            document.getElementById('forecastDays').textContent = forecast.length;
+            document.getElementById('avgGeneration').textContent = `${avgGen.toFixed(1)} kWh`;
+            document.getElementById('avgDemand').textContent = `${avgDem.toFixed(1)} kWh`;
+        }
+        
+        // Update charts with real predicted data
+        function updateCharts(forecast) {
+            if (!forecast || forecast.length === 0) return;
+            
+            const labels = forecast.map(item => item.date);
+            const solarData = forecast.map(item => item.solar_energy || 0);
+            const windData = forecast.map(item => item.wind_energy || 0);
+            const demandData = forecast.map(item => item.demand || 0);
+            const totalData = forecast.map(item => (item.solar_energy || 0) + (item.wind_energy || 0));
+            
+            // Update generation chart
+            if (generationChart) {
+                generationChart.data.labels = labels;
+                generationChart.data.datasets[0].data = solarData;
+                generationChart.data.datasets[1].data = windData;
+                generationChart.update();
+            }
+            
+            // Update demand chart
+            if (demandChart) {
+                demandChart.data.labels = labels;
+                demandChart.data.datasets[0].data = demandData;
+                demandChart.data.datasets[1].data = totalData;
+                demandChart.update();
+            }
+        }
+        
+        // Update forecast table with real predicted values
+        function updateForecastTable(forecast) {
+            if (!forecast || forecast.length === 0) return;
+            
+            const tbody = document.getElementById('forecastTableBody');
+            tbody.innerHTML = '';
+            
+            forecast.forEach(item => {
+                const row = tbody.insertRow();
+                const totalGen = (item.solar_energy || 0) + (item.wind_energy || 0);
+                row.innerHTML = `
+                    <td>${item.date}</td>
+                    <td>${(item.solar_energy || 0).toFixed(2)}</td>
+                    <td>${(item.wind_energy || 0).toFixed(2)}</td>
+                    <td>${totalGen.toFixed(2)}</td>
+                    <td>${(item.demand || 0).toFixed(2)}</td>
+                    <td>${(item.battery_storage || 0).toFixed(2)}</td>
+                    <td>${(item.energy_export || 0).toFixed(2)}</td>
+                `;
+            });
+        }
+        
+        // Toggle side menu
+        function toggleMenu() {
+            const dashboard = document.getElementById('sideDashboard');
+            const mainContent = document.getElementById('mainContent');
+            dashboard.classList.toggle('open');
+            mainContent.classList.toggle('shifted');
+        }
+        
+        // Show different sections
+        function showSection(section) {
+            // Hide all sections
+            document.getElementById('overviewSection').classList.add('hidden');
+            document.getElementById('forecastSection').classList.add('hidden');
+            document.getElementById('chatbotSection').classList.add('hidden');
+            
+            // Remove active class from all menu items
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected section and update menu
+            switch(section) {
+                case 'overview':
+                    document.getElementById('overviewSection').classList.remove('hidden');
+                    break;
+                case 'forecast':
+                    document.getElementById('forecastSection').classList.remove('hidden');
+                    break;
+                case 'chatbot':
+                    document.getElementById('chatbotSection').classList.remove('hidden');
+                    break;
+                case 'smartheal':
+                    window.location.href = 'smartheal.html';
+                    return;
+                case 'multigrid':
+                    window.location.href = 'multigrid.html';
+                    return;
+            }
+            
+            // Update active menu item
+            if (event && event.target) {
+                event.target.closest('.menu-item').classList.add('active');
+            }
+        }
+        
+        // Initialize all charts
+        function initializeCharts() {
+            // Generation Chart
+            const genCtx = document.getElementById('generationChart');
+            if (genCtx) {
+                generationChart = new Chart(genCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Solar Generation (kWh)',
+                            data: [],
+                            borderColor: 'rgb(255, 205, 86)',
+                            backgroundColor: 'rgba(255, 205, 86, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }, {
+                            label: 'Wind Generation (kWh)',
+                            data: [],
+                            borderColor: 'rgb(54, 162, 235)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: 'white' }
+                            }
+                        },
+                        scales: {
+                            x: { ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } },
+                            y: { ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }
+                        }
+                    }
+                });
+            }
+            
+            // Demand Chart
+            const demandCtx = document.getElementById('demandChart');
+            if (demandCtx) {
+                demandChart = new Chart(demandCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Demand (kWh)',
+                            data: [],
+                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                            borderColor: 'rgb(255, 99, 132)',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }, {
+                            label: 'Total Generation (kWh)',
+                            data: [],
+                            backgroundColor: 'rgba(34, 197, 94, 0.6)',
+                            borderColor: 'rgb(34, 197, 94)',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: 'white' }
+                            }
+                        },
+                        scales: {
+                            x: { ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } },
+                            y: { ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }
+                        }
+                    }
+                });
+            }
+            
+            // Forecast Chart
+            const forecastCtx = document.getElementById('forecastChart');
+            if (forecastCtx) {
+                forecastChart = new Chart(forecastCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Solar (kWh)',
+                            data: [],
+                            borderColor: 'rgb(255, 205, 86)',
+                            backgroundColor: 'rgba(255, 205, 86, 0.2)',
+                            tension: 0.4
+                        }, {
+                            label: 'Wind (kWh)',
+                            data: [],
+                            borderColor: 'rgb(54, 162, 235)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            tension: 0.4
+                        }, {
+                            label: 'Demand (kWh)',
+                            data: [],
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: 'white' }
+                            }
+                        },
+                        scales: {
+                            x: { ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } },
+                            y: { ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Refresh data
+        function refreshData() {
+            loadRealForecastData();
+        }
+        
+        // Train Prophet model
+        function trainProphetModel() {
+            showAlert('Training Prophet AI model with your system parameters...', 'warning');
+            
+            fetch('/train_prophet', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showAlert('Prophet model trained successfully!', 'success');
+                    setTimeout(() => loadRealForecastData(), 1000);
+                } else {
+                    showAlert('Error training Prophet model: ' + data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                showAlert('Network error while training model', 'danger');
+            });
+        }
+        
+        // Show alert
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `<span>${message}</span>`;
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 4000);
+        }
+        
+        // Update last update time
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('lastUpdate').textContent = timeString;
+        }
+        
+        // Go to setup
+        function goToSetup() {
+            window.location.href = 'setup.html';
+        }
+        
+        // Chat functions
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Simulate AI response
+            setTimeout(() => {
+                const response = generateAIResponse(message);
+                addMessage(response, 'ai');
+            }, 500 + Math.random() * 1000);
+        }
+        
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+        
+        function addMessage(message, sender) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex items-start gap-3 mb-4';
+            
+            if (sender === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
+                    <div class="bg-blue-500/20 rounded-lg p-3 max-w-xs">
+                        <p class="text-white">${message}</p>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-robot text-white text-sm"></i>
+                    </div>
+                    <div class="bg-green-500/20 rounded-lg p-3 max-w-xs">
+                        <p class="text-white">${message}</p>
+                    </div>
+                `;
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function generateAIResponse(message) {
+            const responses = [
+                "I'm analyzing your energy system based on your configured parameters for solar panels, wind turbines, and consumption patterns.",
+                "Your forecast data is generated using real calculations based on your system specifications from the setup.",
+                "The solar generation predictions account for your panel count, efficiency, and geographic location.",
+                "Wind generation forecasts use your turbine specifications and local wind patterns.",
+                "System efficiency is calculated from the ratio of total generation to your demand profile.",
+                "I can provide insights based on your actual energy configuration and predicted performance."
+            ];
+            
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+    </script>
+</body>
+</html>

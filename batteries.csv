@@ -1,0 +1,4 @@
+battery_model,battery_capacity,battery_voltage,charge_efficiency,discharge_efficiency,max_discharge_rate
+BAT10,10,48,0.95,0.95,5
+BAT20,20,48,0.95,0.94,10
+BAT40,40,96,0.96,0.95,20

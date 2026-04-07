@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoGrid AI - Professional Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Animated background */
+        .animated-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            overflow: hidden;
+        }
+        
+        .animated-bg::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            z-index: 1;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            animation: rotate 30s linear infinite;
+        }
+        
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Glass effect */
+        .glass-card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            border-color: rgba(148, 163, 184, 0.2);
+        }
+        
+        /* Input styles */
+        .input-group {
+            position: relative;
+        }
+        
+        .input-field {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            color: #f1f5f9;
+            padding: 16px 20px 16px 50px;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .input-field::placeholder {
+            color: #64748b;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 18px;
+            transition: color 0.3s ease;
+        }
+        
+        .input-field:focus + .input-icon {
+            color: #3b82f6;
+        }
+        
+        /* Button styles */
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.3);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Checkbox styles */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            accent-color: #3b82f6;
+            cursor: pointer;
+        }
+        
+        /* Loading spinner */
+        .spinner {
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 2px solid white;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading .spinner {
+            display: inline-block;
+        }
+        
+        .loading .btn-text {
+            display: none;
+        }
+        
+        /* Error message */
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .error-message.show {
+            display: block;
+        }
+        
+        /* Success message */
+        .success-message {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .success-message.show {
+            display: block;
+        }
+        
+        /* Feature highlights */
+        .feature-highlight {
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-highlight:hover {
+            background: rgba(59, 130, 246, 0.15);
+            transform: translateX(4px);
+        }
+        
+        /* Social login buttons */
+        .social-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            background: rgba(15, 23, 42, 0.6);
+            color: #f1f5f9;
+        }
+        
+        .social-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        
+        .social-btn.google:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        
+        .social-btn.microsoft:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-bg"></div>
+    
+    <div class="relative z-10 min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-6xl mx-auto">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                
+                <!-- Left Panel - Login Form -->
+                <div class="glass-card p-8 lg:p-12">
+                    <div class="mb-8">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-bolt text-white text-xl"></i>
+                            </div>
+                            <h1 class="text-3xl font-bold text-white">EcoGrid AI</h1>
+                        </div>
+                        <p class="text-slate-400 text-lg">Welcome back! Sign in to access your renewable energy dashboard.</p>
+                    </div>
+                    
+                    <!-- Error/Success Messages -->
+                    <div id="errorMessage" class="error-message mb-4">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <span id="errorText"></span>
+                    </div>
+                    
+                    <div id="successMessage" class="success-message mb-4">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span id="successText"></span>
+                    </div>
+                    
+                    <!-- Login Form -->
+                    <form id="loginForm" onsubmit="handleLogin(event)">
+                        <div class="space-y-6">
+                            <div class="input-group">
+                                <input 
+                                    type="text" 
+                                    id="name" 
+                                    class="input-field" 
+                                    placeholder="Full Name"
+                                    required
+                                    autocomplete="name"
+                                >
+                                <i class="fas fa-user input-icon"></i>
+                            </div>
+                            
+                            <div class="input-group">
+                                <input 
+                                    type="email" 
+                                    id="email" 
+                                    class="input-field" 
+                                    placeholder="Email Address"
+                                    required
+                                    autocomplete="email"
+                                >
+                                <i class="fas fa-envelope input-icon"></i>
+                            </div>
+                            
+                            <div class="input-group">
+                                <input 
+                                    type="password" 
+                                    id="password" 
+                                    class="input-field" 
+                                    placeholder="Password"
+                                    required
+                                    autocomplete="current-password"
+                                    minlength="8"
+                                >
+                                <i class="fas fa-lock input-icon"></i>
+                            </div>
+                            
+                            <div class="flex items-center justify-between">
+                                <div class="checkbox-wrapper">
+                                    <input type="checkbox" id="remember" class="checkbox">
+                                    <label for="remember" class="text-slate-300 text-sm cursor-pointer">Remember me</label>
+                                </div>
+                                <a href="#" class="text-blue-400 text-sm hover:text-blue-300 transition">Forgot password?</a>
+                            </div>
+                            
+                            <button type="submit" id="loginBtn" class="btn-primary w-full flex items-center justify-center">
+                                <span class="spinner"></span>
+                                <span class="btn-text">Sign In</span>
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Social Login -->
+                    <div class="mt-8">
+                        <div class="relative mb-6">
+                            <div class="absolute inset-0 flex items-center">
+                                <div class="w-full border-t border-slate-700"></div>
+                            </div>
+                            <div class="relative flex justify-center text-sm">
+                                <span class="px-4 bg-slate-800 text-slate-400">Or continue with</span>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <button class="social-btn google" onclick="socialLogin('google')">
+                                <i class="fab fa-google text-red-400"></i>
+                                <span>Google</span>
+                            </button>
+                            <button class="social-btn microsoft" onclick="socialLogin('microsoft')">
+                                <i class="fab fa-microsoft text-blue-400"></i>
+                                <span>Microsoft</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Sign Up Link -->
+                    <div class="mt-8 text-center">
+                        <p class="text-slate-400">
+                            Don't have an account? 
+                            <a href="#" onclick="showSignUp()" class="text-blue-400 hover:text-blue-300 transition font-medium">Sign up</a>
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Right Panel - Features -->
+                <div class="hidden lg:block">
+                    <div class="glass-card p-8 lg:p-12">
+                        <h2 class="text-2xl font-bold text-white mb-8">Why Choose EcoGrid AI?</h2>
+                        
+                        <div class="space-y-4">
+                            <div class="feature-highlight">
+                                <div class="flex items-start gap-4">
+                                    <div class="w-10 h-10 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-solar-panel text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-white font-semibold mb-2">Smart Solar Forecasting</h3>
+                                        <p class="text-slate-400 text-sm">AI-powered solar energy predictions with 95% accuracy</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="feature-highlight">
+                                <div class="flex items-start gap-4">
+                                    <div class="w-10 h-10 bg-gradient-to-r from-blue-400 to-cyan-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-wind text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-white font-semibold mb-2">Wind Energy Analytics</h3>
+                                        <p class="text-slate-400 text-sm">Real-time wind turbine performance monitoring</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="feature-highlight">
+                                <div class="flex items-start gap-4">
+                                    <div class="w-10 h-10 bg-gradient-to-r from-green-400 to-emerald-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-battery-full text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-white font-semibold mb-2">Battery Optimization</h3>
+                                        <p class="text-slate-400 text-sm">Intelligent storage management for maximum efficiency</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="feature-highlight">
+                                <div class="flex items-start gap-4">
+                                    <div class="w-10 h-10 bg-gradient-to-r from-purple-400 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                        <i class="fas fa-chart-line text-white"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-white font-semibold mb-2">Prophet AI Integration</h3>
+                                        <p class="text-slate-400 text-sm">Advanced machine learning for energy predictions</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Stats -->
+                        <div class="mt-8 grid grid-cols-2 gap-4">
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-white mb-1">10K+</div>
+                                <div class="text-slate-400 text-sm">Active Users</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-white mb-1">99.9%</div>
+                                <div class="text-slate-400 text-sm">Uptime</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-white mb-1">24/7</div>
+                                <div class="text-slate-400 text-sm">Support</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-3xl font-bold text-white mb-1">150+</div>
+                                <div class="text-slate-400 text-sm">Countries</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+    <script>
+        // Enhanced login function
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const name = document.getElementById("name").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const password = document.getElementById("password").value;
+            const remember = document.getElementById("remember").checked;
+            
+            // Reset messages
+            hideMessages();
+            
+            // Validation
+            if (!validateInput(name, email, password)) {
+                return;
+            }
+            
+            // Show loading state
+            const loginBtn = document.getElementById("loginBtn");
+            loginBtn.classList.add("loading");
+            loginBtn.disabled = true;
+            
+            // Simulate authentication (in real app, this would be an API call)
+            setTimeout(() => {
+                try {
+                    // Store user data
+                    const userData = {
+                        name: name,
+                        email: email,
+                        loginTime: new Date().toISOString(),
+                        remember: remember
+                    };
+                    
+                    if (remember) {
+                        localStorage.setItem('userData', JSON.stringify(userData));
+                    } else {
+                        sessionStorage.setItem('userData', JSON.stringify(userData));
+                    }
+                    
+                    // Send to backend
+                    fetch('/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            name: name,
+                            email: email,
+                            password: password
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.status === 'success') {
+                            showSuccess('Login successful! Redirecting to dashboard...');
+                            // Store user info in session storage
+                            sessionStorage.setItem('userName', result.user.name);
+                            sessionStorage.setItem('userEmail', result.user.email);
+                            sessionStorage.setItem('userId', result.user.id);
+                            
+                            setTimeout(() => {
+                                window.location.href = "/setup";
+                            }, 1500);
+                        } else {
+                            showError(result.error || 'Login failed. Please try again.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Login error:', error);
+                        showError('Network error. Please try again.');
+                    })
+                    .finally(() => {
+                        loginBtn.classList.remove("loading");
+                        loginBtn.disabled = false;
+                    });
+                    
+                } catch (error) {
+                    showError('An error occurred. Please try again.');
+                    loginBtn.classList.remove("loading");
+                    loginBtn.disabled = false;
+                }
+            }, 1500);
+        }
+        
+        // Validation function
+        function validateInput(name, email, password) {
+            if (name.length < 2) {
+                showError('Name must be at least 2 characters long.');
+                return false;
+            }
+            
+            if (!isValidEmail(email)) {
+                showError('Please enter a valid email address.');
+                return false;
+            }
+            
+            if (password.length < 8) {
+                showError('Password must be at least 8 characters long.');
+                return false;
+            }
+            
+            if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
+                showError('Password must contain at least one uppercase letter, one lowercase letter, and one number.');
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Email validation
+        function isValidEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+        
+        // Message functions
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            const errorText = document.getElementById('errorText');
+            errorText.textContent = message;
+            errorEl.classList.add('show');
+            setTimeout(() => hideMessages(), 5000);
+        }
+        
+        function showSuccess(message) {
+            const successEl = document.getElementById('successMessage');
+            const successText = document.getElementById('successText');
+            successText.textContent = message;
+            successEl.classList.add('show');
+        }
+        
+        function hideMessages() {
+            document.getElementById('errorMessage').classList.remove('show');
+            document.getElementById('successMessage').classList.remove('show');
+        }
+        
+        // Social login
+        function socialLogin(provider) {
+            if (provider === 'google') {
+                // Redirect to Google OAuth
+                window.location.href = '/auth/google';
+            } else if (provider === 'microsoft') {
+                showSuccess('Microsoft login coming soon!');
+            }
+        }
+        
+        // Sign up
+        function showSignUp() {
+            showSuccess('Sign up feature coming soon!');
+        }
+        
+        // Check for existing session
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for Google OAuth success
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('login_success') === 'true') {
+                showSuccess('Google login successful! Redirecting...');
+                setTimeout(() => {
+                    window.location.href = "/setup";
+                }, 1500);
+                return;
+            }
+            
+            // Check for OAuth error
+            if (urlParams.get('error')) {
+                showError('Google login failed. Please try again.');
+                // Clean URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+            
+            const userData = localStorage.getItem('userData') || sessionStorage.getItem('userData');
+            if (userData) {
+                const user = JSON.parse(userData);
+                document.getElementById('name').value = user.name || '';
+                document.getElementById('email').value = user.email || '';
+                if (user.remember) {
+                    document.getElementById('remember').checked = true;
+                }
+            }
+            
+            // Auto-focus first input
+            document.getElementById('name').focus();
+        });
+        
+        // Input animations
+        document.querySelectorAll('.input-field').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('focused');
+            });
+            
+            input.addEventListener('blur', function() {
+                if (!this.value) {
+                    this.parentElement.classList.remove('focused');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

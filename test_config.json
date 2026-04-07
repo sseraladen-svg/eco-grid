@@ -1,0 +1,44 @@
+{
+  "location": {
+    "latitude": "40.7128",
+    "longitude": "-74.0060",
+    "altitude": "10",
+    "installation_type": "rooftop",
+    "terrain_type": "urban"
+  },
+  "solar": {
+    "panel_model": "standard",
+    "panel_count": "10",
+    "panel_power": "300",
+    "panel_efficiency": "20",
+    "tilt_angle": "30",
+    "azimuth_angle": "180",
+    "installation_type": "rooftop",
+    "inverter_efficiency": "95",
+    "system_loss": "10",
+    "shading_factor": "5"
+  },
+  "wind": {
+    "turbine_model": "small",
+    "turbine_count": "2",
+    "rated_power": "500",
+    "cut_in_speed": "3",
+    "cut_out_speed": "25",
+    "hub_height": "20",
+    "rotor_diameter": "5",
+    "turbine_efficiency": "35"
+  },
+  "battery": {
+    "battery_capacity": "10000",
+    "battery_voltage": "48",
+    "charge_efficiency": "90",
+    "discharge_efficiency": "90",
+    "max_discharge_rate": "5000"
+  },
+  "consumption": {
+    "daily_energy_usage": "30",
+    "peak_load": "5000",
+    "critical_load": "1000",
+    "load_profile_type": "residential"
+  }
+}

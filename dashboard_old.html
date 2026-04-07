@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoGrid AI Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body { 
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+            color: #f1f5f9;
+            overflow-x: hidden;
+        }
+        
+        /* Modern Glass Card Effect */
+        .glass-card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4);
+            border-color: rgba(148, 163, 184, 0.2);
+        }
+        
+        /* Menu Button Styles */
+        .menu-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(30, 41, 59, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .menu-button:hover {
+            background: rgba(30, 41, 59, 1);
+            transform: scale(1.05);
+        }
+        
+        /* Side Dashboard */
+        .side-dashboard {
+            position: fixed;
+            top: 0;
+            left: -400px;
+            width: 400px;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(148, 163, 184, 0.1);
+            transition: left 0.3s ease;
+            z-index: 999;
+            overflow-y: auto;
+        }
+        
+        .side-dashboard.open {
+            left: 0;
+        }
+        
+        .side-dashboard-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .close-menu {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .close-menu:hover {
+            background: rgba(239, 68, 68, 0.3);
+            transform: scale(1.05);
+        }
+        
+        /* Menu Item Styles */
+        .menu-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .menu-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid #3b82f6;
+        }
+        
+        .menu-item.active {
+            background: rgba(59, 130, 246, 0.2);
+            border-left: 3px solid #3b82f6;
+        }
+        
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        /* Loading Spinner */
+        .loading {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid white;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Status Indicators */
+        .status-online {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th {
+            background: rgba(59, 130, 246, 0.1);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .data-table tr:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+        
+        /* JSON Display */
+        .json-display {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .json-content {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #94a3b8;
+            white-space: pre-wrap;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .side-dashboard {
+                width: 100%;
+                left: -100%;
+            }
+            
+            .chart-container {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Button -->
+    <button class="menu-button" onclick="toggleMenu()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+
+    <!-- Side Dashboard -->
+    <div id="sideDashboard" class="side-dashboard">
+        <div class="side-dashboard-header">
+            <h2 class="text-xl font-bold text-white">EcoGrid AI</h2>
+            <button class="close-menu" onclick="toggleMenu()">✕</button>
+        </div>
+        
+        <div class="menu-item active" onclick="navigateTo('dashboard')">
+            <span>📊</span>
+            <span>Dashboard</span>
+        </div>
+        
+        <div class="menu-item" onclick="navigateTo('forecast')">
+            <span>📈</span>
+            <span>Forecast</span>
+        </div>
+        
+        <div class="menu-item" onclick="navigateTo('prophet')">
+            <span>🤖</span>
+            <span>Prophet AI</span>
+        </div>
+        
+        <div class="menu-item" onclick="navigateTo('nasa')">
+            <span>🛰️</span>
+            <span>NASA Data</span>
+        </div>
+        
+        <div class="menu-item" onclick="navigateTo('settings')">
+            <span>⚙️</span>
+            <span>Settings</span>
+        </div>
+        
+        <div class="menu-item" onclick="navigateTo('climate')">
+            <span>🌍</span>
+            <span>Climate Impact</span>
+        </div>
+        
+        <div class="menu-item" onclick="navigateTo('logout')">
+            <span>🚪</span>
+            <span>Logout</span>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="p-6 ml-0">
+        <!-- Header -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-white mb-2">Energy Dashboard</h1>
+            <p class="text-slate-400">Real-time renewable energy monitoring and forecasting</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="glass-card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-yellow-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-solar-panel text-white text-xl"></i>
+                    </div>
+                    <span class="status-online"></span>
+                </div>
+                <h3 class="text-lg font-semibold mb-1">Solar Generation</h3>
+                <p class="text-3xl font-bold text-yellow-400" id="solar-total">0 kWh</p>
+                <p class="text-sm opacity-70">Today</p>
+            </div>
+            
+            <div class="glass-card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-wind text-white text-xl"></i>
+                    </div>
+                    <span class="status-online"></span>
+                </div>
+                <h3 class="text-lg font-semibold mb-1">Wind Generation</h3>
+                <p class="text-3xl font-bold text-blue-400" id="wind-total">0 kWh</p>
+                <p class="text-sm opacity-70">Today</p>
+            </div>
+            
+            <div class="glass-card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-green-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-battery-full text-white text-xl"></i>
+                    </div>
+                    <span class="status-online"></span>
+                </div>
+                <h3 class="text-lg font-semibold mb-1">Battery Level</h3>
+                <p class="text-3xl font-bold text-green-400" id="battery-level">0%</p>
+                <p class="text-sm opacity-70">Current</p>
+            </div>
+            
+            <div class="glass-card p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-purple-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-bolt text-white text-xl"></i>
+                    </div>
+                    <span class="status-online"></span>
+                </div>
+                <h3 class="text-lg font-semibold mb-1">Total Demand</h3>
+                <p class="text-3xl font-bold text-purple-400" id="demand-total">0 kWh</p>
+                <p class="text-sm opacity-70">Today</p>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="glass-card p-6">
+                <h3 class="text-xl font-semibold mb-4">Energy Generation</h3>
+                <div class="chart-container">
+                    <canvas id="generationChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="glass-card p-6">
+                <h3 class="text-xl font-semibold mb-4">Demand vs Supply</h3>
+                <div class="chart-container">
+                    <canvas id="demandChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Prophet AI Chart -->
+        <div class="glass-card p-6 mb-8">
+            <h3 class="text-xl font-semibold mb-4">Prophet AI Forecast</h3>
+            <div class="chart-container">
+                <canvas id="prophetChart"></canvas>
+            </div>
+            <div class="mt-4 flex gap-4">
+                <button onclick="trainProphetModel()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg transition-colors">
+                    🤖 Train Model
+                </button>
+                <button onclick="generateProphetForecast()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                    📈 Generate Forecast
+                </button>
+            </div>
+        </div>
+
+        <!-- Forecast Table -->
+        <div class="glass-card p-6 mb-8">
+            <h3 class="text-xl font-semibold mb-4">30-Day Forecast</h3>
+            <div class="overflow-x-auto">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Solar (kWh)</th>
+                            <th>Wind (kWh)</th>
+                            <th>Total (kWh)</th>
+                            <th>Demand (kWh)</th>
+                            <th>Surplus/Deficit</th>
+                        </tr>
+                    </thead>
+                    <tbody id="forecastTableBody">
+                        <tr>
+                            <td colspan="6" class="text-center py-8">
+                                <div class="loading"></div>
+                                <p class="text-slate-400 mt-2">Loading forecast data...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex flex-wrap gap-4 mb-8">
+            <button onclick="refreshData()" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors">
+                🔄 Refresh Data
+            </button>
+            <button onclick="exportData()" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg transition-colors">
+                📊 Export CSV
+            </button>
+            <button onclick="showJSON()" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg transition-colors">
+                📄 Show JSON
+            </button>
+            <button onclick="hideJSON()" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors">
+                🙈 Hide JSON
+            </button>
+        </div>
+
+        <!-- JSON Display -->
+        <div id="json-display" class="json-display hidden">
+            <h3 class="text-lg font-semibold mb-4 text-white">Raw Forecast Data</h3>
+            <div class="json-content" id="json-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let generationChart, demandChart, prophetChart;
+        let forecastData = [];
+        let currentForecastJSON = null;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            loadAllData();
+        });
+
+        // Menu functions
+        function toggleMenu() {
+            const dashboard = document.getElementById('sideDashboard');
+            dashboard.classList.toggle('open');
+        }
+
+        function navigateTo(page) {
+            switch(page) {
+                case 'dashboard':
+                    window.location.reload();
+                    break;
+                case 'forecast':
+                    alert('📈 Forecast Analysis - Coming Soon!');
+                    toggleMenu();
+                    break;
+                case 'prophet':
+                    alert('🤖 Prophet AI Model - Coming Soon!');
+                    toggleMenu();
+                    break;
+                case 'nasa':
+                    alert('🛰️ NASA Satellite Data - Coming Soon!');
+                    toggleMenu();
+                    break;
+                case 'settings':
+                    alert('⚙️ System Settings - Coming Soon!');
+                    toggleMenu();
+                    break;
+                case 'climate':
+                    alert('🌍 Climate Impact - Coming Soon!');
+                    toggleMenu();
+                    break;
+                case 'logout':
+                    if (confirm('Are you sure you want to logout?')) {
+                        logout();
+                    }
+                    break;
+            }
+        }
+
+        // Initialize all charts
+        function initializeCharts() {
+            // Generation Chart
+            const genCtx = document.getElementById('generationChart');
+            if (genCtx) {
+                generationChart = new Chart(genCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Solar Generation',
+                            data: [],
+                            borderColor: 'rgb(255, 205, 86)',
+                            backgroundColor: 'rgba(255, 205, 86, 0.2)',
+                            tension: 0.4
+                        }, {
+                            label: 'Wind Generation',
+                            data: [],
+                            borderColor: 'rgb(54, 162, 235)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#f1f5f9'
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: '#94a3b8' },
+                                grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                            },
+                            y: {
+                                ticks: { color: '#94a3b8' },
+                                grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Demand Chart
+            const demandCtx = document.getElementById('demandChart');
+            if (demandCtx) {
+                demandChart = new Chart(demandCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Total Generation',
+                            data: [],
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.4
+                        }, {
+                            label: 'Demand',
+                            data: [],
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#f1f5f9'
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: '#94a3b8' },
+                                grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                            },
+                            y: {
+                                ticks: { color: '#94a3b8' },
+                                grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Prophet Chart
+            initializeProphetChart();
+        }
+
+        function initializeProphetChart() {
+            const prophetCtx = document.getElementById('prophetChart');
+            if (prophetCtx) {
+                prophetChart = new Chart(prophetCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Actual',
+                            data: [],
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.4
+                        }, {
+                            label: 'Prophet Forecast',
+                            data: [],
+                            borderColor: 'rgb(153, 102, 255)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: '#f1f5f9'
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: { color: '#94a3b8' },
+                                grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                            },
+                            y: {
+                                ticks: { color: '#94a3b8' },
+                                grid: { color: 'rgba(148, 163, 184, 0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Load all data
+        function loadAllData() {
+            // Sample data for demonstration
+            const sampleData = [
+                { date: '2024-01-01', solar_energy: 45.2, wind_energy: 12.8, total_generation: 58.0, demand: 52.3 },
+                { date: '2024-01-02', solar_energy: 38.7, wind_energy: 15.4, total_generation: 54.1, demand: 48.9 },
+                { date: '2024-01-03', solar_energy: 42.1, wind_energy: 18.2, total_generation: 60.3, demand: 55.7 },
+                { date: '2024-01-04', solar_energy: 35.9, wind_energy: 22.1, total_generation: 58.0, demand: 51.2 },
+                { date: '2024-01-05', solar_energy: 40.3, wind_energy: 19.7, total_generation: 60.0, demand: 53.8 }
+            ];
+            
+            // Try to load from API first
+            fetch('/forecast')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(forecast => {
+                    forecastData = forecast;
+                    updateDashboard(forecast);
+                })
+                .catch(error => {
+                    forecastData = sampleData;
+                    updateDashboard(sampleData);
+                });
+        }
+
+        // Update dashboard with data
+        function updateDashboard(forecast) {
+            if (forecast && forecast.length > 0) {
+                updateStats(forecast);
+                updateCharts(forecast);
+                updateForecastTable(forecast);
+                currentForecastJSON = { forecast: forecast };
+            }
+        }
+
+        // Update statistics cards
+        function updateStats(forecast) {
+            const latest = forecast[0];
+            document.getElementById('solar-total').textContent = `${latest.solar_energy} kWh`;
+            document.getElementById('wind-total').textContent = `${latest.wind_energy} kWh`;
+            document.getElementById('total-stat').textContent = `${latest.total_generation} kWh`;
+            document.getElementById('demand-total').textContent = `${latest.demand} kWh`;
+        }
+
+        // Update charts
+        function updateCharts(forecast) {
+            const labels = forecast.map(d => d.date);
+            
+            // Update generation chart
+            if (generationChart) {
+                generationChart.data.labels = labels;
+                generationChart.data.datasets[0].data = forecast.map(d => d.solar_energy);
+                generationChart.data.datasets[1].data = forecast.map(d => d.wind_energy);
+                generationChart.update();
+            }
+            
+            // Update demand chart
+            if (demandChart) {
+                demandChart.data.labels = labels;
+                demandChart.data.datasets[0].data = forecast.map(d => d.total_generation);
+                demandChart.data.datasets[1].data = forecast.map(d => d.demand);
+                demandChart.update();
+            }
+        }
+
+        // Update forecast table
+        function updateForecastTable(forecast) {
+            const tbody = document.getElementById('forecastTableBody');
+            tbody.innerHTML = '';
+            
+            forecast.forEach(day => {
+                const surplus = day.total_generation - day.demand;
+                const surplusClass = surplus >= 0 ? 'text-green-400' : 'text-red-400';
+                const surplusText = surplus >= 0 ? `+${surplus.toFixed(1)}` : surplus.toFixed(1);
+                
+                const row = `
+                    <tr class="hover:bg-gray-800">
+                        <td class="p-3">${day.date}</td>
+                        <td class="p-3">${day.solar_energy}</td>
+                        <td class="p-3">${day.wind_energy}</td>
+                        <td class="p-3">${day.total_generation}</td>
+                        <td class="p-3">${day.demand}</td>
+                        <td class="p-3 ${surplusClass}">${surplusText}</td>
+                    </tr>
+                `;
+                tbody.innerHTML += row;
+            });
+        }
+
+        // Prophet AI functions
+        function trainProphetModel() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="loading"></span> Training...';
+            btn.disabled = true;
+
+            fetch('/train_prophet', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    alert('✅ Prophet model trained successfully!');
+                    updateProphetChart(data);
+                } else {
+                    alert('❌ Error training model: ' + (data.error || 'Unknown error'));
+                }
+            })
+            .catch(error => {
+                alert('❌ Error training model: ' + error.message);
+            })
+            .finally(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            });
+        }
+
+        function generateProphetForecast() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<span class="loading"></span> Generating...';
+            btn.disabled = true;
+
+            fetch('/forecast_prophet')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        alert('❌ Error generating forecast: ' + data.error);
+                    } else {
+                        alert('✅ Prophet forecast generated successfully!');
+                        updateProphetChart(data);
+                    }
+                })
+                .catch(error => {
+                    alert('❌ Error generating forecast: ' + error.message);
+                })
+                .finally(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                });
+        }
+
+        function updateProphetChart(data) {
+            if (!prophetChart) {
+                initializeProphetChart();
+            }
+            
+            const forecast = data.forecast || [];
+            const labels = forecast.map(d => d.ds || d.date);
+            const values = forecast.map(d => d.total_generation || d.yhat || 0);
+            
+            prophetChart.data.labels = labels;
+            prophetChart.data.datasets[1].data = values;
+            prophetChart.update();
+        }
+
+        // Action functions
+        function refreshData() {
+            loadAllData();
+        }
+
+        function showJSON() {
+            const jsonDisplay = document.getElementById('json-display');
+            const jsonContent = document.getElementById('json-content');
+            
+            if (currentForecastJSON) {
+                jsonContent.textContent = JSON.stringify(currentForecastJSON, null, 2);
+                jsonDisplay.classList.remove('hidden');
+            } else {
+                jsonContent.textContent = 'No forecast data available. Generate forecast first.';
+                jsonDisplay.classList.remove('hidden');
+            }
+        }
+
+        function hideJSON() {
+            const jsonDisplay = document.getElementById('json-display');
+            jsonDisplay.classList.add('hidden');
+        }
+
+        function exportData() {
+            if (!currentForecastJSON || !currentForecastJSON.forecast) {
+                alert('No data to export');
+                return;
+            }
+
+            let csv = 'Date,Solar Energy (kWh),Wind Energy (kWh),Total Generation (kWh),Demand (kWh)\n';
+            
+            currentForecastJSON.forecast.forEach(day => {
+                csv += `${day.date},${day.solar_energy},${day.wind_energy},${day.total_generation},${day.demand}\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `energy_forecast_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoGrid AI - Energy Forecasting</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            font-family: 'Inter', sans-serif;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #475569 0%, #334155 100%);
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+        .metric-card {
+            transition: all 0.3s;
+        }
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgba(139, 92, 246, 0.3);
+        }
+        .loading-spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid white;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen text-white">
+    <!-- Header -->
+    <header class="glass-card p-4 mb-6">
+        <div class="container mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold">🔮 Energy Forecasting Center</h1>
+                <p class="text-slate-300 mt-1">Prophet AI Model Predictions & Analysis</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div id="model-status" class="flex items-center gap-2">
+                    <div class="w-3 h-3 bg-yellow-500 rounded-full" id="status-indicator"></div>
+                    <span class="text-sm" id="status-text">Model Ready</span>
+                </div>
+                <a href="/dashboard" class="btn-secondary">
+                    <i class="fas fa-arrow-left mr-2"></i>Dashboard
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4">
+        <!-- Model Controls -->
+        <section class="glass-card p-6 rounded-xl mb-6">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-xl font-bold mb-2">🤖 Prophet AI Model Controls</h2>
+                    <p class="text-slate-300">Train model and generate energy forecasts</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="trainModel()" class="btn-secondary" id="train-btn">
+                        <i class="fas fa-brain mr-2"></i>Train Model
+                    </button>
+                    <button onclick="generateForecast()" class="btn-primary" id="forecast-btn">
+                        <i class="fas fa-chart-line mr-2"></i>Generate Forecast
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Model Metrics -->
+        <section class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="glass-card p-6 rounded-xl metric-card">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h4 class="text-sm font-medium text-slate-300">Model Accuracy</h4>
+                        <p class="text-2xl font-bold" id="model-accuracy">--%</p>
+                    </div>
+                    <i class="fas fa-bullseye text-2xl text-green-400"></i>
+                </div>
+                <div class="text-xs text-slate-400">Prediction confidence</div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl metric-card">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h4 class="text-sm font-medium text-slate-300">Training Status</h4>
+                        <p class="text-2xl font-bold" id="training-status">Ready</p>
+                    </div>
+                    <i class="fas fa-cogs text-2xl text-blue-400"></i>
+                </div>
+                <div class="text-xs text-slate-400">Model state</div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl metric-card">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h4 class="text-sm font-medium text-slate-300">Data Points</h4>
+                        <p class="text-2xl font-bold" id="data-points">--</p>
+                    </div>
+                    <i class="fas fa-database text-2xl text-purple-400"></i>
+                </div>
+                <div class="text-xs text-slate-400">Training samples</div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl metric-card">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h4 class="text-sm font-medium text-slate-300">Last Updated</h4>
+                        <p class="text-2xl font-bold" id="last-updated">--</p>
+                    </div>
+                    <i class="fas fa-clock text-2xl text-orange-400"></i>
+                </div>
+                <div class="text-xs text-slate-400">Model refresh</div>
+            </div>
+        </section>
+
+        <!-- Forecast Results -->
+        <section class="glass-card p-6 rounded-xl mb-6">
+            <h2 class="text-xl font-bold mb-6">📈 30-Day Energy Forecast</h2>
+            <div class="chart-container">
+                <canvas id="forecastChart"></canvas>
+            </div>
+        </section>
+
+        <!-- Forecast Statistics -->
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div class="glass-card p-6 rounded-xl">
+                <h3 class="text-lg font-bold mb-4">📊 Production Statistics</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-slate-300">Total Solar Production:</span>
+                        <span class="font-semibold" id="total-solar">-- kWh</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-300">Total Wind Production:</span>
+                        <span class="font-semibold" id="total-wind">-- kWh</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-300">Average Daily Production:</span>
+                        <span class="font-semibold" id="avg-daily">-- kWh</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-300">Peak Production Day:</span>
+                        <span class="font-semibold" id="peak-day">-- kWh</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-6 rounded-xl">
+                <h3 class="text-lg font-bold mb-4">🎯 Model Performance</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-slate-300">Trend Direction:</span>
+                        <span class="font-semibold" id="trend-direction">--</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-300">Volatility:</span>
+                        <span class="font-semibold" id="volatility">--%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-300">Confidence Interval:</span>
+                        <span class="font-semibold" id="confidence">--%</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-slate-300">Seasonal Pattern:</span>
+                        <span class="font-semibold" id="seasonal">--</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Detailed Forecast Table -->
+        <section class="glass-card p-6 rounded-xl">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold">📋 Detailed Forecast Data</h2>
+                <button onclick="exportData()" class="btn-secondary text-sm">
+                    <i class="fas fa-download mr-2"></i>Export CSV
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-white/30">
+                            <th class="pb-3 text-slate-300">Date</th>
+                            <th class="pb-3 text-slate-300">Solar (kWh)</th>
+                            <th class="pb-3 text-slate-300">Wind (kWh)</th>
+                            <th class="pb-3 text-slate-300">Total (kWh)</th>
+                            <th class="pb-3 text-slate-300">Confidence</th>
+                            <th class="pb-3 text-slate-300">Pattern</th>
+                        </tr>
+                    </thead>
+                    <tbody id="forecast-table">
+                        <tr>
+                            <td colspan="6" class="text-center py-8 text-slate-400">
+                                Click "Generate Forecast" to see predictions
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Scripts -->
+    <script src="forecast-script.js"></script>
+</body>
+</html>
