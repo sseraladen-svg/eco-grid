@@ -57,7 +57,12 @@ logs/
 
 # Data files (keep structure but ignore content)
 backend/data/*.csv
+backend/data/forecast_output.csv
+backend/data/solar_forecast.csv
+backend/data/wind_forecast.csv
+backend/data/weather_data.csv
 !backend/data/.gitkeep
+!backend/data/system_config.json
 !backend/data/system_config.json
 
 # Test
