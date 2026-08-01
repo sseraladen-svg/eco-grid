@@ -910,12 +910,23 @@
     
     <!-- Load Navigation -->
     <script>
-        fetch('/navigation.html')
-            .then(response => response.text())
-            .then(html => {
-                document.getElementById('navigation-container').innerHTML = html;
-            })
-            .catch(error => console.error('Error loading navigation:', error));
+        async function loadNavigation() {
+            try {
+                const response = await fetch('/navigation.html');
+                if (response.ok) {
+                    const html = await response.text();
+                    document.getElementById('navigation-container').innerHTML = html;
+                } else {
+                    console.error('Failed to load navigation:', response.status);
+                }
+            } catch (error) {
+                console.error('Error loading navigation:', error);
+            }
+        }
+        
+        if (document.getElementById('navigation-container')) {
+            loadNavigation();
+        }
     </script>
 </body>
 </html>
