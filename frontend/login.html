@@ -1106,8 +1106,7 @@
             if (urlParams.get('login_success') === 'true') {
                 showSuccess('Google login successful! Redirecting...');
                 setTimeout(() => {
-                    const redirectUrl = urlParams.get('redirect') || '/dashboard';
-                    window.location.href = redirectUrl;
+                    window.location.href = urlParams.get('redirect') || '/dashboard';
                 }, 1500);
                 return;
             }

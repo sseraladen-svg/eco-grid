@@ -76,8 +76,8 @@ def google_login():
         ).first()
         redirect_url = '/dashboard' if user_config else '/setup'
         
-        # Redirect to frontend with location step
-        return redirect(f'{redirect_url}?login_success=true&redirect={redirect_url}')
+        # Redirect to frontend with success message
+        return redirect(f'{redirect_url}?login_success=true')
     
     # Real Google OAuth flow
     # Generate state parameter for security
@@ -162,8 +162,8 @@ def google_callback():
         ).first()
         redirect_url = '/dashboard' if user_config else '/setup'
         
-        # Redirect to frontend with location step
-        return redirect(f'{redirect_url}?login_success=true&redirect={redirect_url}')
+        # Redirect to frontend with success message
+        return redirect(f'{redirect_url}?login_success=true')
         
     except Exception as e:
         print(f"Google OAuth error: {str(e)}")
