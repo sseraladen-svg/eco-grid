@@ -40,6 +40,7 @@ backend/instance/
 *.swp
 *.swo
 *~
+*.code-workspace
 
 # OS
 .DS_Store
@@ -55,10 +56,9 @@ logs/
 .env.local
 
 # Data files (keep structure but ignore content)
-data/*.csv
 backend/data/*.csv
-!data/.gitkeep
 !backend/data/.gitkeep
+!backend/data/system_config.json
 
 # Test
 .pytest_cache/
