@@ -11,6 +11,7 @@
         body {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
             font-family: 'Inter', sans-serif;
+            padding-top: 64px;
         }
         .glass-card {
             background: rgba(255, 255, 255, 0.1);
@@ -77,6 +78,9 @@
     </style>
 </head>
 <body class="min-h-screen text-white">
+    <!-- Navigation -->
+    <div id="navigation-container"></div>
+    
     <!-- Header -->
     <header class="glass-card p-4 mb-6">
         <div class="container mx-auto flex justify-between items-center">
@@ -252,5 +256,15 @@
 
     <!-- Scripts -->
     <script src="forecast-script.js"></script>
+    
+    <!-- Load Navigation -->
+    <script>
+        fetch('/navigation.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('navigation-container').innerHTML = html;
+            })
+            .catch(error => console.error('Error loading navigation:', error));
+    </script>
 </body>
 </html>

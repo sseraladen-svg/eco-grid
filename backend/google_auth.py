@@ -69,8 +69,15 @@ def google_login():
         # Store Google profile info
         session['google_profile'] = demo_user
         
+        # Check if user has active configuration
+        user_config = SystemConfiguration.query.filter_by(
+            user_id=user.id, 
+            is_active=True
+        ).first()
+        redirect_url = '/dashboard' if user_config else '/setup'
+        
         # Redirect to frontend with location step
-        return redirect('/setup?login_success=true&step=location')
+        return redirect(f'{redirect_url}?login_success=true&redirect={redirect_url}')
     
     # Real Google OAuth flow
     # Generate state parameter for security
@@ -148,8 +155,15 @@ def google_callback():
             'picture': picture
         }
         
+        # Check if user has active configuration
+        user_config = SystemConfiguration.query.filter_by(
+            user_id=user.id, 
+            is_active=True
+        ).first()
+        redirect_url = '/dashboard' if user_config else '/setup'
+        
         # Redirect to frontend with location step
-        return redirect('/setup?login_success=true&step=location')
+        return redirect(f'{redirect_url}?login_success=true&redirect={redirect_url}')
         
     except Exception as e:
         print(f"Google OAuth error: {str(e)}")

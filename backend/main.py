@@ -69,6 +69,13 @@ def dashboard():
     return send_from_directory(str(FRONTEND_DIR), "dashboard.html")
 
 
+@app.route("/navigation.html")
+@login_required
+def navigation():
+    """Serve the navigation component"""
+    return send_from_directory(str(FRONTEND_DIR), "navigation.html")
+
+
 @app.route("/<path:path>")
 def static_files(path):
     return send_from_directory(str(FRONTEND_DIR), path)
@@ -98,7 +105,8 @@ def login():
                 return jsonify({
                     "status": "success", 
                     "message": "Registration successful",
-                    "user": user.to_dict()
+                    "user": user.to_dict(),
+                    "redirect": "/setup"
                 })
             else:
                 return jsonify({"error": message}), 400
@@ -106,10 +114,19 @@ def login():
             # Login existing user
             user, message = authenticate_user(email, password, request)
             if user:
+                # Check if user has active configuration
+                active_config = SystemConfiguration.query.filter_by(
+                    user_id=user.id, 
+                    is_active=True
+                ).first()
+                
+                redirect_url = "/setup" if not active_config else "/dashboard"
+                
                 return jsonify({
                     "status": "success", 
                     "message": "Login successful",
-                    "user": user.to_dict()
+                    "user": user.to_dict(),
+                    "redirect": redirect_url
                 })
             else:
                 return jsonify({"error": message}), 401

@@ -620,6 +620,9 @@
     </style>
 </head>
 <body class="enterprise-dashboard">
+    <!-- Navigation -->
+    <div id="navigation-container"></div>
+    
     <!-- Enterprise Header -->
     <header class="enterprise-header">
         <nav class="enterprise-header-nav">
@@ -1964,6 +1967,16 @@
             
             return responses[Math.floor(Math.random() * responses.length)];
         }
+    </script>
+    
+    <!-- Load Navigation -->
+    <script>
+        fetch('/navigation.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('navigation-container').innerHTML = html;
+            })
+            .catch(error => console.error('Error loading navigation:', error));
     </script>
 </body>
 </html>

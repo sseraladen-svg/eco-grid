@@ -1003,14 +1003,14 @@
                     .then(response => response.json())
                     .then(result => {
                         if (result.status === 'success') {
-                            showSuccess('Login successful! Redirecting to dashboard...');
+                            showSuccess('Login successful! Redirecting...');
                             // Store user info in session storage
                             sessionStorage.setItem('userName', result.user.name);
                             sessionStorage.setItem('userEmail', result.user.email);
                             sessionStorage.setItem('userId', result.user.id);
                             
                             setTimeout(() => {
-                                window.location.href = "/setup";
+                                window.location.href = result.redirect || "/dashboard";
                             }, 1500);
                         } else {
                             showError(result.error || 'Login failed. Please try again.');
@@ -1106,7 +1106,8 @@
             if (urlParams.get('login_success') === 'true') {
                 showSuccess('Google login successful! Redirecting...');
                 setTimeout(() => {
-                    window.location.href = "/setup";
+                    const redirectUrl = urlParams.get('redirect') || '/dashboard';
+                    window.location.href = redirectUrl;
                 }, 1500);
                 return;
             }

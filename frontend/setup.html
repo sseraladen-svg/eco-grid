@@ -13,6 +13,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            padding-top: 64px;
         }
         .glass-effect {
             background: rgba(255, 255, 255, 0.15);
@@ -84,6 +85,9 @@
     </style>
 </head>
 <body>
+    <!-- Navigation -->
+    <div id="navigation-container"></div>
+    
     <div class="container mx-auto px-4 py-8">
         <!-- Header -->
         <header class="text-center mb-8">
@@ -902,6 +906,16 @@
             populateForm(sampleData);
             showNotification('Default data loaded! You can modify any settings before submitting.', 'success');
         }
+    </script>
+    
+    <!-- Load Navigation -->
+    <script>
+        fetch('/navigation.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('navigation-container').innerHTML = html;
+            })
+            .catch(error => console.error('Error loading navigation:', error));
     </script>
 </body>
 </html>
