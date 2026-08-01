@@ -1,0 +1,14 @@
+pandas
+numpy
+prophet
+matplotlib
+joblib
+flask
+flask-sqlalchemy
+flask-login
+werkzeug
+bcrypt
+requests
+google-auth
+google-auth-oauthlib
+google-auth-httplib2

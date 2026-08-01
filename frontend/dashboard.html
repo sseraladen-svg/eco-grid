@@ -1,0 +1,1969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoGrid AI - Enterprise Dashboard</title>
+    <link rel="stylesheet" href="assets/css/enterprise.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Enterprise Dashboard Specific Styles */
+        .enterprise-dashboard {
+            min-height: 100vh;
+            background: var(--neutral-50);
+        }
+
+        .enterprise-header {
+            background: white;
+            border-bottom: 1px solid var(--neutral-200);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .enterprise-header-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            padding: 0 var(--space-xl);
+        }
+
+        .enterprise-header-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-lg);
+        }
+
+        .enterprise-header-brand {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--neutral-900);
+            text-decoration: none;
+        }
+
+        .enterprise-header-brand:hover {
+            color: var(--primary-600);
+        }
+
+        .enterprise-header-logo {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.875rem;
+        }
+
+        .enterprise-header-nav-items {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .enterprise-header-nav-item {
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--radius-md);
+            color: var(--neutral-600);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+        }
+
+        .enterprise-header-nav-item:hover {
+            background: var(--neutral-100);
+            color: var(--neutral-900);
+        }
+
+        .enterprise-header-nav-item.active {
+            background: var(--primary-50);
+            color: var(--primary-600);
+        }
+
+        .enterprise-header-right {
+            display: flex;
+            align-items: center;
+            gap: var(--space-md);
+        }
+
+        .enterprise-header-search {
+            position: relative;
+        }
+
+        .enterprise-header-search input {
+            width: 240px;
+            padding: var(--space-sm) var(--space-md) var(--space-sm) var(--space-xl);
+            border: 1px solid var(--neutral-300);
+            border-radius: var(--radius-lg);
+            font-size: 0.875rem;
+            background: var(--neutral-50);
+            transition: all var(--transition-fast);
+        }
+
+        .enterprise-header-search input:focus {
+            outline: none;
+            border-color: var(--primary-500);
+            background: white;
+            box-shadow: 0 0 0 3px var(--primary-100);
+        }
+
+        .enterprise-header-search i {
+            position: absolute;
+            left: var(--space-md);
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--neutral-400);
+            font-size: 0.875rem;
+        }
+
+        .enterprise-header-actions {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+        }
+
+        .enterprise-header-btn {
+            padding: var(--space-sm);
+            border: 1px solid var(--neutral-300);
+            border-radius: var(--radius-md);
+            background: white;
+            color: var(--neutral-600);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            position: relative;
+        }
+
+        .enterprise-header-btn:hover {
+            background: var(--neutral-50);
+            border-color: var(--neutral-400);
+            color: var(--neutral-900);
+        }
+
+        .enterprise-header-btn.notification::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: var(--error-500);
+            border-radius: 50%;
+        }
+
+        .enterprise-header-user {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            border: 1px solid var(--neutral-300);
+            border-radius: var(--radius-lg);
+            background: white;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .enterprise-header-user:hover {
+            background: var(--neutral-50);
+            border-color: var(--neutral-400);
+        }
+
+        .enterprise-header-user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-md);
+            background: linear-gradient(135deg, var(--primary-400) 0%, var(--primary-600) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .enterprise-header-user-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .enterprise-header-user-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--neutral-900);
+            line-height: 1.2;
+        }
+
+        .enterprise-header-user-role {
+            font-size: 0.75rem;
+            color: var(--neutral-500);
+            line-height: 1.2;
+        }
+
+        .enterprise-sidebar {
+            background: white;
+            border-right: 1px solid var(--neutral-200);
+            width: 280px;
+            height: calc(100vh - 64px);
+            position: fixed;
+            left: 0;
+            top: 64px;
+            z-index: 90;
+            overflow-y: auto;
+            transition: transform var(--transition-base);
+        }
+
+        .enterprise-sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .enterprise-sidebar-nav {
+            padding: var(--space-lg);
+        }
+
+        .enterprise-sidebar-section {
+            margin-bottom: var(--space-xl);
+        }
+
+        .enterprise-sidebar-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--neutral-500);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: var(--space-md);
+        }
+
+        .enterprise-sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: var(--space-sm) var(--space-md);
+            border-radius: var(--radius-md);
+            color: var(--neutral-600);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+            margin-bottom: var(--space-xs);
+        }
+
+        .enterprise-sidebar-item:hover {
+            background: var(--neutral-100);
+            color: var(--neutral-900);
+        }
+
+        .enterprise-sidebar-item.active {
+            background: var(--primary-50);
+            color: var(--primary-600);
+        }
+
+        .enterprise-main {
+            margin-left: 280px;
+            min-height: calc(100vh - 64px);
+            padding: var(--space-xl);
+            transition: margin-left var(--transition-base);
+        }
+
+        .enterprise-main.expanded {
+            margin-left: 0;
+        }
+
+        .enterprise-page-header {
+            margin-bottom: var(--space-2xl);
+        }
+
+        .enterprise-page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--neutral-900);
+            margin-bottom: var(--space-sm);
+        }
+
+        .enterprise-page-subtitle {
+            font-size: 1rem;
+            color: var(--neutral-600);
+        }
+
+        .enterprise-page-actions {
+            display: flex;
+            gap: var(--space-md);
+            margin-top: var(--space-lg);
+        }
+
+        .enterprise-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-2xl);
+        }
+
+        .enterprise-metric-card {
+            background: white;
+            border: 1px solid var(--neutral-200);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            box-shadow: var(--shadow-sm);
+            transition: all var(--transition-base);
+        }
+
+        .enterprise-metric-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .enterprise-metric-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-md);
+        }
+
+        .enterprise-metric-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--neutral-600);
+        }
+
+        .enterprise-metric-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.125rem;
+        }
+
+        .enterprise-metric-icon.solar {
+            background: var(--solar-50);
+            color: var(--solar-600);
+        }
+
+        .enterprise-metric-icon.wind {
+            background: var(--wind-50);
+            color: var(--wind-600);
+        }
+
+        .enterprise-metric-icon.battery {
+            background: var(--battery-50);
+            color: var(--battery-600);
+        }
+
+        .enterprise-metric-icon.efficiency {
+            background: var(--efficiency-50);
+            color: var(--efficiency-600);
+        }
+
+        .enterprise-metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--neutral-900);
+            margin-bottom: var(--space-sm);
+        }
+
+        .enterprise-metric-change {
+            display: flex;
+            align-items: center;
+            gap: var(--space-xs);
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .enterprise-metric-change.positive {
+            color: var(--success-600);
+        }
+
+        .enterprise-metric-change.negative {
+            color: var(--error-600);
+        }
+
+        .enterprise-charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-2xl);
+        }
+
+        .enterprise-chart-container {
+            background: white;
+            border: 1px solid var(--neutral-200);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .enterprise-chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-lg);
+        }
+
+        .enterprise-chart-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--neutral-900);
+        }
+
+        .enterprise-chart-actions {
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        .enterprise-chart-action {
+            padding: var(--space-xs) var(--space-sm);
+            border: 1px solid var(--neutral-300);
+            border-radius: var(--radius-md);
+            background: white;
+            color: var(--neutral-600);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .enterprise-chart-action:hover {
+            background: var(--neutral-50);
+            border-color: var(--neutral-400);
+            color: var(--neutral-900);
+        }
+
+        .enterprise-table-container {
+            background: white;
+            border: 1px solid var(--neutral-200);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: var(--space-2xl);
+        }
+
+        .enterprise-table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: var(--space-lg);
+        }
+
+        .enterprise-table-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--neutral-900);
+        }
+
+        .enterprise-table-actions {
+            display: flex;
+            gap: var(--space-sm);
+        }
+
+        .enterprise-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+
+        .enterprise-table th {
+            background: var(--neutral-50);
+            padding: var(--space-md);
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--neutral-700);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .enterprise-table td {
+            padding: var(--space-md);
+            border-bottom: 1px solid var(--neutral-100);
+            font-size: 0.875rem;
+            color: var(--neutral-700);
+        }
+
+        .enterprise-table tr:hover {
+            background: var(--neutral-50);
+        }
+
+        .mobile-menu-btn {
+            display: none;
+            padding: var(--space-sm);
+            border: 1px solid var(--neutral-300);
+            border-radius: var(--radius-md);
+            background: white;
+            color: var(--neutral-600);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .mobile-menu-btn:hover {
+            background: var(--neutral-50);
+            border-color: var(--neutral-400);
+            color: var(--neutral-900);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .enterprise-sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .enterprise-sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .enterprise-main {
+                margin-left: 0;
+            }
+            
+            .enterprise-header-search input {
+                width: 180px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .mobile-menu-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .enterprise-header-nav-items {
+                display: none;
+            }
+            
+            .enterprise-header-search {
+                display: none;
+            }
+            
+            .enterprise-header-user-info {
+                display: none;
+            }
+            
+            .enterprise-metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .enterprise-charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .enterprise-page-title {
+                font-size: 1.5rem;
+            }
+            
+            .enterprise-main {
+                padding: var(--space-lg);
+            }
+        }
+
+        /* Alert Styles */
+        .enterprise-alert {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 1000;
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            min-width: 300px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .enterprise-alert-success {
+            background: var(--success-50);
+            color: var(--success-700);
+            border: 1px solid var(--success-200);
+        }
+
+        .enterprise-alert-error {
+            background: var(--error-50);
+            color: var(--error-700);
+            border: 1px solid var(--error-200);
+        }
+
+        .enterprise-alert-warning {
+            background: var(--warning-50);
+            color: var(--warning-700);
+            border: 1px solid var(--warning-200);
+        }
+
+        .enterprise-alert-info {
+            background: var(--info-50);
+            color: var(--info-700);
+            border: 1px solid var(--info-200);
+        }
+    </style>
+</head>
+<body class="enterprise-dashboard">
+    <!-- Enterprise Header -->
+    <header class="enterprise-header">
+        <nav class="enterprise-header-nav">
+            <div class="enterprise-header-left">
+                <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                    <i class="fas fa-bars"></i>
+                </button>
+                
+                <a href="/dashboard" class="enterprise-header-brand">
+                    <div class="enterprise-header-logo">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <span>EcoGrid AI</span>
+                </a>
+                
+                <div class="enterprise-header-nav-items">
+                    <a href="#overview" class="enterprise-header-nav-item active">
+                        <i class="fas fa-dashboard"></i>
+                        <span>Overview</span>
+                    </a>
+                    <a href="#analytics" class="enterprise-header-nav-item">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Analytics</span>
+                    </a>
+                    <a href="#control" class="enterprise-header-nav-item">
+                        <i class="fas fa-cog"></i>
+                        <span>Control</span>
+                    </a>
+                    <a href="#reports" class="enterprise-header-nav-item">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Reports</span>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="enterprise-header-right">
+                <div class="enterprise-header-search">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="Search energy data...">
+                </div>
+                
+                <div class="enterprise-header-actions">
+                    <button class="enterprise-header-btn notification" title="Notifications">
+                        <i class="fas fa-bell"></i>
+                    </button>
+                    
+                    <button class="enterprise-header-btn" title="Settings">
+                        <i class="fas fa-cog"></i>
+                    </button>
+                    
+                    <div class="enterprise-header-user" onclick="window.location.href='/profile'">
+                        <div class="enterprise-header-user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="enterprise-header-user-info">
+                            <span class="enterprise-header-user-name">Admin User</span>
+                            <span class="enterprise-header-user-role">Enterprise</span>
+                        </div>
+                        <i class="fas fa-chevron-down" style="color: var(--neutral-400); font-size: 0.75rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Enterprise Sidebar -->
+    <aside class="enterprise-sidebar" id="enterpriseSidebar">
+        <nav class="enterprise-sidebar-nav">
+            <div class="enterprise-sidebar-section">
+                <h3 class="enterprise-sidebar-title">Main</h3>
+                <a href="#overview" class="enterprise-sidebar-item active">
+                    <i class="fas fa-dashboard"></i>
+                    <span>Dashboard Overview</span>
+                </a>
+                <a href="#analytics" class="enterprise-sidebar-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Energy Analytics</span>
+                </a>
+                <a href="#forecast" class="enterprise-sidebar-item">
+                    <i class="fas fa-cloud-sun"></i>
+                    <span>Forecasting</span>
+                </a>
+            </div>
+            
+            <div class="enterprise-sidebar-section">
+                <h3 class="enterprise-sidebar-title">Management</h3>
+                <a href="#control" class="enterprise-sidebar-item">
+                    <i class="fas fa-sliders-h"></i>
+                    <span>System Control</span>
+                </a>
+                <a href="#devices" class="enterprise-sidebar-item">
+                    <i class="fas fa-microchip"></i>
+                    <span>Device Management</span>
+                </a>
+                <a href="#maintenance" class="enterprise-sidebar-item">
+                    <i class="fas fa-tools"></i>
+                    <span>Maintenance</span>
+                </a>
+            </div>
+            
+            <div class="enterprise-sidebar-section">
+                <h3 class="enterprise-sidebar-title">Tools</h3>
+                <a href="#chatbot" class="enterprise-sidebar-item" onclick="window.location.href='/chatbot.html'">
+                    <i class="fas fa-robot"></i>
+                    <span>AI Assistant</span>
+                </a>
+                <a href="#smartheal" class="enterprise-sidebar-item" onclick="window.location.href='/smartheal.html'">
+                    <i class="fas fa-heartbeat"></i>
+                    <span>Smart Health</span>
+                </a>
+                <a href="#multigrid" class="enterprise-sidebar-item" onclick="window.location.href='/multigrid.html'">
+                    <i class="fas fa-network-wired"></i>
+                    <span>Multi-Grid</span>
+                </a>
+            </div>
+            
+            <div class="enterprise-sidebar-section">
+                <h3 class="enterprise-sidebar-title">System</h3>
+                <a href="#settings" class="enterprise-sidebar-item" onclick="window.location.href='/setup'">
+                    <i class="fas fa-cog"></i>
+                    <span>Settings</span>
+                </a>
+                <a href="#logout" class="enterprise-sidebar-item" onclick="window.location.href='/logout'">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <!-- Enterprise Main Content -->
+    <main class="enterprise-main" id="enterpriseMain">
+        <!-- Page Header -->
+        <div class="enterprise-page-header">
+            <h1 class="enterprise-page-title">Energy Management Dashboard</h1>
+            <p class="enterprise-page-subtitle">Real-time monitoring and analytics for your renewable energy systems</p>
+            
+            <div class="enterprise-page-actions">
+                <button class="enterprise-btn enterprise-btn-primary" onclick="refreshData()">
+                    <i class="fas fa-sync-alt"></i>
+                    Refresh Data
+                </button>
+                <button class="enterprise-btn enterprise-btn-secondary" onclick="exportData()">
+                    <i class="fas fa-download"></i>
+                    Export Report
+                </button>
+                <button class="enterprise-btn enterprise-btn-ghost" onclick="trainProphetModel()">
+                    <i class="fas fa-brain"></i>
+                    Train AI Model
+                </button>
+            </div>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="enterprise-metrics-grid">
+            <div class="enterprise-metric-card">
+                <div class="enterprise-metric-header">
+                    <span class="enterprise-metric-title">Solar Generation</span>
+                    <div class="enterprise-metric-icon solar">
+                        <i class="fas fa-solar-panel"></i>
+                    </div>
+                </div>
+                <div class="enterprise-metric-value" id="solarStat">0 kWh</div>
+                <div class="enterprise-metric-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>12.5% from yesterday</span>
+                </div>
+            </div>
+            
+            <div class="enterprise-metric-card">
+                <div class="enterprise-metric-header">
+                    <span class="enterprise-metric-title">Wind Generation</span>
+                    <div class="enterprise-metric-icon wind">
+                        <i class="fas fa-wind"></i>
+                    </div>
+                </div>
+                <div class="enterprise-metric-value" id="windStat">0 kWh</div>
+                <div class="enterprise-metric-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>8.3% from yesterday</span>
+                </div>
+            </div>
+            
+            <div class="enterprise-metric-card">
+                <div class="enterprise-metric-header">
+                    <span class="enterprise-metric-title">Battery Storage</span>
+                    <div class="enterprise-metric-icon battery">
+                        <i class="fas fa-battery-three-quarters"></i>
+                    </div>
+                </div>
+                <div class="enterprise-metric-value" id="batteryStat">0 kWh</div>
+                <div class="enterprise-metric-change negative">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>3.2% from yesterday</span>
+                </div>
+            </div>
+            
+            <div class="enterprise-metric-card">
+                <div class="enterprise-metric-header">
+                    <span class="enterprise-metric-title">System Efficiency</span>
+                    <div class="enterprise-metric-icon efficiency">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                </div>
+                <div class="enterprise-metric-value" id="efficiencyStat">0%</div>
+                <div class="enterprise-metric-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>5.7% from yesterday</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="enterprise-charts-grid">
+            <div class="enterprise-chart-container">
+                <div class="enterprise-chart-header">
+                    <h3 class="enterprise-chart-title">Energy Generation</h3>
+                    <div class="enterprise-chart-actions">
+                        <button class="enterprise-chart-action" onclick="downloadChart('generationChart')">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        <button class="enterprise-chart-action" onclick="refreshChart('generationChart')">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div style="height: 300px; position: relative;">
+                    <canvas id="generationChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="enterprise-chart-container">
+                <div class="enterprise-chart-header">
+                    <h3 class="enterprise-chart-title">Demand vs Supply</h3>
+                    <div class="enterprise-chart-actions">
+                        <button class="enterprise-chart-action" onclick="downloadChart('demandChart')">
+                            <i class="fas fa-download"></i>
+                        </button>
+                        <button class="enterprise-chart-action" onclick="refreshChart('demandChart')">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div style="height: 300px; position: relative;">
+                    <canvas id="demandChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Battery Storage Chart -->
+        <div class="enterprise-chart-container">
+            <div class="enterprise-chart-header">
+                <h3 class="enterprise-chart-title">Battery Storage Levels</h3>
+                <div class="enterprise-chart-actions">
+                    <button class="enterprise-chart-action" onclick="downloadChart('batteryChart')">
+                        <i class="fas fa-download"></i>
+                    </button>
+                    <button class="enterprise-chart-action" onclick="refreshChart('batteryChart')">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div style="height: 300px; position: relative;">
+                <canvas id="batteryChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="enterprise-table-container">
+            <div class="enterprise-table-header">
+                <h3 class="enterprise-table-title">Energy Forecast Data</h3>
+                <div class="enterprise-table-actions">
+                    <button class="enterprise-chart-action" onclick="exportTableData()">
+                        <i class="fas fa-download"></i>
+                        Export CSV
+                    </button>
+                    <button class="enterprise-chart-action" onclick="refreshTableData()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="enterprise-table" id="forecastTable">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Solar (kWh)</th>
+                            <th>Wind (kWh)</th>
+                            <th>Total Generation (kWh)</th>
+                            <th>Demand (kWh)</th>
+                            <th>Battery (kWh)</th>
+                            <th>Export (kWh)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="forecastTableBody">
+                        <!-- Data will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Alert Container -->
+    <div id="alertContainer"></div>
+
+    <script>
+        // Enterprise Dashboard JavaScript
+        let generationChart, demandChart, batteryChart;
+        let forecastData = [];
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            loadRealForecastData();
+            setupEventListeners();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Handle navigation clicks
+            document.querySelectorAll('.enterprise-header-nav-item, .enterprise-sidebar-item').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    if (this.getAttribute('onclick')) {
+                        return; // Skip if has onclick handler
+                    }
+                    
+                    e.preventDefault();
+                    
+                    // Remove active class from all items
+                    document.querySelectorAll('.enterprise-header-nav-item, .enterprise-sidebar-item').forEach(navItem => {
+                        navItem.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // Handle navigation based on href
+                    const href = this.getAttribute('href');
+                    if (href === '#overview') {
+                        showAlert('Overview section loaded', 'info');
+                    } else if (href === '#analytics') {
+                        showAlert('Analytics section loaded', 'info');
+                    } else if (href === '#control') {
+                        window.location.href = '/setup';
+                    } else if (href === '#reports') {
+                        exportData();
+                    }
+                });
+            });
+        }
+
+        // Toggle sidebar
+        function toggleSidebar() {
+            const sidebar = document.getElementById('enterpriseSidebar');
+            const main = document.getElementById('enterpriseMain');
+            
+            sidebar.classList.toggle('open');
+            main.classList.toggle('expanded');
+        }
+
+        // Initialize charts
+        function initializeCharts() {
+            // Generation Chart
+            const generationCtx = document.getElementById('generationChart');
+            if (generationCtx) {
+                generationChart = new Chart(generationCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Solar Generation',
+                            data: [],
+                            borderColor: 'rgb(251, 191, 36)',
+                            backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                            tension: 0.4
+                        }, {
+                            label: 'Wind Generation',
+                            data: [],
+                            borderColor: 'rgb(6, 182, 212)',
+                            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: 'rgb(55, 65, 81)' }
+                            }
+                        },
+                        scales: {
+                            x: { 
+                                ticks: { color: 'rgb(55, 65, 81)' }, 
+                                grid: { color: 'rgba(55, 65, 81, 0.1)' } 
+                            },
+                            y: { 
+                                ticks: { color: 'rgb(55, 65, 81)' }, 
+                                grid: { color: 'rgba(55, 65, 81, 0.1)' } 
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Demand Chart
+            const demandCtx = document.getElementById('demandChart');
+            if (demandCtx) {
+                demandChart = new Chart(demandCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Demand',
+                            data: [],
+                            backgroundColor: 'rgba(239, 68, 68, 0.8)'
+                        }, {
+                            label: 'Total Generation',
+                            data: [],
+                            backgroundColor: 'rgba(34, 197, 94, 0.8)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: 'rgb(55, 65, 81)' }
+                            }
+                        },
+                        scales: {
+                            x: { 
+                                ticks: { color: 'rgb(55, 65, 81)' }, 
+                                grid: { color: 'rgba(55, 65, 81, 0.1)' } 
+                            },
+                            y: { 
+                                ticks: { color: 'rgb(55, 65, 81)' }, 
+                                grid: { color: 'rgba(55, 65, 81, 0.1)' } 
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Battery Chart
+            const batteryCtx = document.getElementById('batteryChart');
+            if (batteryCtx) {
+                batteryChart = new Chart(batteryCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Battery Storage (kWh)',
+                            data: [],
+                            borderColor: 'rgb(249, 115, 22)',
+                            backgroundColor: 'rgba(249, 115, 22, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: 'rgb(55, 65, 81)' }
+                            }
+                        },
+                        scales: {
+                            x: { 
+                                ticks: { color: 'rgb(55, 65, 81)' }, 
+                                grid: { color: 'rgba(55, 65, 81, 0.1)' } 
+                            },
+                            y: { 
+                                ticks: { color: 'rgb(55, 65, 81)' }, 
+                                grid: { color: 'rgba(55, 65, 81, 0.1)' } 
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Load real forecast data
+        async function loadRealForecastData() {
+            try {
+                const response = await fetch('/forecast');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch forecast data');
+                }
+                
+                const data = await response.json();
+                forecastData = data;
+                
+                updateStats(data);
+                updateCharts(data);
+                updateTable(data);
+                
+                showAlert('Forecast data loaded successfully', 'success');
+            } catch (error) {
+                console.error('Error loading forecast data:', error);
+                showAlert('Failed to load forecast data. Using sample data.', 'warning');
+                loadSampleData();
+            }
+        }
+
+        // Load sample data
+        function loadSampleData() {
+            const sampleData = [];
+            const today = new Date();
+            
+            for (let i = 0; i < 30; i++) {
+                const date = new Date(today);
+                date.setDate(date.getDate() + i);
+                
+                sampleData.push({
+                    date: date.toISOString().split('T')[0],
+                    solar_energy: Math.random() * 50 + 20,
+                    wind_energy: Math.random() * 30 + 10,
+                    total_generation: Math.random() * 70 + 40,
+                    demand: Math.random() * 60 + 30,
+                    battery_storage: Math.random() * 40 + 10,
+                    energy_export: Math.random() * 20 + 5
+                });
+            }
+            
+            forecastData = sampleData;
+            updateStats(sampleData);
+            updateCharts(sampleData);
+            updateTable(sampleData);
+        }
+
+        // Update statistics
+        function updateStats(forecast) {
+            if (forecast.length === 0) return;
+
+            const latest = forecast[forecast.length - 1];
+            document.getElementById('solarStat').textContent = `${latest.solar_energy?.toFixed(1) || 0} kWh`;
+            document.getElementById('windStat').textContent = `${latest.wind_energy?.toFixed(1) || 0} kWh`;
+            document.getElementById('batteryStat').textContent = `${latest.battery_storage?.toFixed(1) || 0} kWh`;
+
+            // Calculate system efficiency
+            const totalGeneration = (latest.solar_energy || 0) + (latest.wind_energy || 0);
+            const efficiency = latest.demand > 0 ? ((totalGeneration / latest.demand) * 100).toFixed(1) : 0;
+            document.getElementById('efficiencyStat').textContent = `${efficiency}%`;
+        }
+
+        // Update charts
+        function updateCharts(forecast) {
+            if (!forecast || forecast.length === 0) return;
+
+            const labels = forecast.map(item => item.date);
+            const solarData = forecast.map(item => item.solar_energy || 0);
+            const windData = forecast.map(item => item.wind_energy || 0);
+            const demandData = forecast.map(item => item.demand || 0);
+            const totalData = forecast.map(item => (item.solar_energy || 0) + (item.wind_energy || 0));
+            const batteryData = forecast.map(item => item.battery_storage || 0);
+
+            // Update generation chart
+            if (generationChart) {
+                generationChart.data.labels = labels;
+                generationChart.data.datasets[0].data = solarData;
+                generationChart.data.datasets[1].data = windData;
+                generationChart.update();
+            }
+
+            // Update demand chart
+            if (demandChart) {
+                demandChart.data.labels = labels;
+                demandChart.data.datasets[0].data = demandData;
+                demandChart.data.datasets[1].data = totalData;
+                demandChart.update();
+            }
+
+            // Update battery chart
+            if (batteryChart) {
+                batteryChart.data.labels = labels;
+                batteryChart.data.datasets[0].data = batteryData;
+                batteryChart.update();
+            }
+        }
+
+        // Update table
+        function updateTable(forecast) {
+            const tbody = document.getElementById('forecastTableBody');
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+            
+            // Show only last 10 records
+            const recentData = forecast.slice(-10).reverse();
+            
+            recentData.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${row.date}</td>
+                    <td>${row.solar_energy?.toFixed(2) || 0}</td>
+                    <td>${row.wind_energy?.toFixed(2) || 0}</td>
+                    <td>${row.total_generation?.toFixed(2) || 0}</td>
+                    <td>${row.demand?.toFixed(2) || 0}</td>
+                    <td>${row.battery_storage?.toFixed(2) || 0}</td>
+                    <td>${row.energy_export?.toFixed(2) || 0}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Refresh data
+        function refreshData() {
+            showAlert('Refreshing data...', 'info');
+            loadRealForecastData();
+        }
+
+        // Export data
+        function exportData() {
+            if (!forecastData || forecastData.length === 0) {
+                showAlert('No data available to export. Please load forecast data first.', 'warning');
+                return;
+            }
+
+            const headers = ['Date', 'Solar Energy (kWh)', 'Wind Energy (kWh)', 'Total Generation (kWh)', 'Demand (kWh)', 'Battery Storage (kWh)', 'Energy Export (kWh)'];
+            const csvContent = [
+                headers.join(','),
+                ...forecastData.map(row => [
+                    row.date,
+                    row.solar_energy,
+                    row.wind_energy,
+                    row.total_generation,
+                    row.demand,
+                    row.battery_storage,
+                    row.energy_export
+                ].join(','))
+            ].join('\n');
+
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ecogrid_forecast_${new Date().toISOString().split('T')[0]}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+
+            showAlert('Forecast data exported successfully!', 'success');
+        }
+
+        // Train Prophet model
+        async function trainProphetModel() {
+            showAlert('Training Prophet AI model with your system parameters...', 'warning');
+            
+            try {
+                const response = await fetch('/train_prophet', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    showAlert('Prophet model trained successfully!', 'success');
+                    setTimeout(() => loadRealForecastData(), 1000);
+                } else {
+                    showAlert('Error training Prophet model: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showAlert('Network error while training model', 'error');
+            }
+        }
+
+        // Show alert
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `enterprise-alert enterprise-alert-${type}`;
+            
+            let icon = 'fas fa-check-circle';
+            if (type === 'error') icon = 'fas fa-exclamation-circle';
+            else if (type === 'warning') icon = 'fas fa-exclamation-triangle';
+            else if (type === 'info') icon = 'fas fa-info-circle';
+            
+            alert.innerHTML = `
+                <i class="${icon}"></i>
+                <span>${message}</span>
+            `;
+            
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 4000);
+        }
+
+        // Chart utility functions
+        function downloadChart(chartId) {
+            showAlert(`Downloading ${chartId}...`, 'info');
+            // Implementation for chart download
+        }
+
+        function refreshChart(chartId) {
+            showAlert(`Refreshing ${chartId}...`, 'info');
+            loadRealForecastData();
+        }
+
+        function exportTableData() {
+            exportData();
+        }
+
+        function refreshTableData() {
+            refreshData();
+        }
+    </script>
+</body>
+</html>
+                <p class="text-gray-400">Real-time monitoring and AI-powered forecasting based on your system parameters</p>
+                <div class="flex gap-4 mt-4">
+                    <button class="btn btn-primary" onclick="refreshData()">
+                        <i class="fas fa-sync-alt"></i>
+                        Refresh Data
+                    </button>
+                    <button class="btn btn-success" onclick="trainProphetModel()">
+                        <i class="fas fa-brain"></i>
+                        Train AI
+                    </button>
+                    <button class="btn btn-warning" onclick="goToSetup()">
+                        <i class="fas fa-cog"></i>
+                        Update Parameters
+                    </button>
+                </div>
+            </div>
+            
+            <!-- KPI Cards with Real Predicted Values -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="kpi-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Solar Generation</p>
+                            <p class="text-2xl font-bold text-yellow-400" id="solarStat">0 kWh</p>
+                            <p class="text-xs text-gray-500 mt-1">Based on panel specs</p>
+                        </div>
+                        <i class="fas fa-solar-panel text-3xl text-yellow-400"></i>
+                    </div>
+                </div>
+                
+                <div class="kpi-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Wind Generation</p>
+                            <p class="text-2xl font-bold text-blue-400" id="windStat">0 kWh</p>
+                            <p class="text-xs text-gray-500 mt-1">Based on turbine specs</p>
+                        </div>
+                        <i class="fas fa-wind text-3xl text-blue-400"></i>
+                    </div>
+                </div>
+                
+                <div class="kpi-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">Total Demand</p>
+                            <p class="text-2xl font-bold text-green-400" id="demandStat">0 kWh</p>
+                            <p class="text-xs text-gray-500 mt-1">Based on usage profile</p>
+                        </div>
+                        <i class="fas fa-bolt text-3xl text-green-400"></i>
+                    </div>
+                </div>
+                
+                <div class="kpi-card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-400 text-sm">System Efficiency</p>
+                            <p class="text-2xl font-bold text-purple-400" id="efficiencyStat">0%</p>
+                            <p class="text-xs text-gray-500 mt-1">Generation/Demand</p>
+                        </div>
+                        <i class="fas fa-chart-line text-3xl text-purple-400"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Charts with Real Forecast Data -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div class="glass-card p-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">Energy Generation Forecast</h3>
+                    <div class="chart-container">
+                        <canvas id="generationChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="glass-card p-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">Demand vs Supply Analysis</h3>
+                    <div class="chart-container">
+                        <canvas id="demandChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- System Statistics -->
+            <div class="glass-card p-6">
+                <h2 class="text-2xl font-bold text-white mb-6">System Statistics & Insights</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="text-center">
+                        <p class="text-gray-400">Last Updated</p>
+                        <p class="text-xl font-semibold text-white" id="lastUpdate">--:--:--</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-gray-400">Forecast Days</p>
+                        <p class="text-xl font-semibold text-white" id="forecastDays">0</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-gray-400">Avg. Daily Generation</p>
+                        <p class="text-xl font-semibold text-green-400" id="avgGeneration">0 kWh</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-gray-400">Avg. Daily Demand</p>
+                        <p class="text-xl font-semibold text-blue-400" id="avgDemand">0 kWh</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Forecast Section -->
+        <div id="forecastSection" class="hidden">
+            <div class="glass-card p-6">
+                <h2 class="text-2xl font-bold text-white mb-6">30-Day Energy Forecast</h2>
+                <div id="loadingForecast" class="loading-spinner hidden"></div>
+                <div id="forecastContent" class="hidden">
+                    <div class="chart-container mb-6">
+                        <canvas id="forecastChart"></canvas>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Solar (kWh)</th>
+                                    <th>Wind (kWh)</th>
+                                    <th>Total (kWh)</th>
+                                    <th>Demand (kWh)</th>
+                                    <th>Battery (kWh)</th>
+                                    <th>Export (kWh)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="forecastTableBody">
+                                <!-- Real forecast data will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="noDataMessage" class="text-center text-gray-400 py-8">
+                    <i class="fas fa-chart-line text-4xl mb-4"></i>
+                    <p class="text-lg">No forecast data available</p>
+                    <p class="text-sm mt-2">Please complete the setup process to generate forecasts</p>
+                    <button onclick="goToSetup()" class="btn btn-primary mt-4">
+                        <i class="fas fa-cog"></i>
+                        Go to Setup
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ChatBot Section -->
+        <div id="chatbotSection" class="hidden">
+            <div class="glass-card p-6">
+                <h2 class="text-2xl font-bold text-white mb-6">AI Energy Assistant</h2>
+                <div id="chatMessages" class="bg-black/30 rounded-lg p-4 h-96 overflow-y-auto mb-4">
+                    <!-- Chat messages will appear here -->
+                </div>
+                <div class="flex gap-2">
+                    <input type="text" id="chatInput" placeholder="Ask me anything about your energy system..." 
+                           class="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-white"
+                           onkeypress="handleChatKeyPress(event)">
+                    <button onclick="sendMessage()" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                        Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Global variables
+        let generationChart, demandChart, forecastChart;
+        let forecastData = [];
+        let currentForecastJSON = null;
+        let isLoading = false;
+        
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            loadRealForecastData();
+            updateLastUpdateTime();
+            setInterval(updateLastUpdateTime, 60000); // Update every minute
+        });
+        
+        // Load REAL forecast data from backend
+        function loadRealForecastData() {
+            if (isLoading) return;
+            isLoading = true;
+            
+            // Show loading state
+            showAlert('Loading forecast data from your system parameters...', 'info');
+            document.getElementById('loadingForecast').classList.remove('hidden');
+            document.getElementById('forecastContent').classList.add('hidden');
+            document.getElementById('noDataMessage').classList.add('hidden');
+            
+            // Load real forecast data from API
+            fetch('/forecast')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(forecast => {
+                    console.log('✅ Real forecast data loaded from API');
+                    forecastData = forecast;
+                    updateDashboard(forecast);
+                    showAlert('Forecast data loaded successfully!', 'success');
+                    
+                    // Update forecast section
+                    document.getElementById('loadingForecast').classList.add('hidden');
+                    document.getElementById('forecastContent').classList.remove('hidden');
+                    document.getElementById('noDataMessage').classList.add('hidden');
+                })
+                .catch(error => {
+                    console.error('❌ Error loading forecast data:', error.message);
+                    showAlert('Failed to load forecast data. Please complete setup first.', 'danger');
+                    
+                    // Show no data message
+                    document.getElementById('loadingForecast').classList.add('hidden');
+                    document.getElementById('forecastContent').classList.add('hidden');
+                    document.getElementById('noDataMessage').classList.remove('hidden');
+                    
+                    // Update dashboard with empty data
+                    updateDashboard([]);
+                })
+                .finally(() => {
+                    isLoading = false;
+                });
+        }
+        
+        // Update dashboard with real predicted values
+        function updateDashboard(forecast) {
+            if (forecast && forecast.length > 0) {
+                updateStats(forecast);
+                updateCharts(forecast);
+                updateForecastTable(forecast);
+                currentForecastJSON = { forecast: forecast };
+                console.log(`✅ Dashboard updated with ${forecast.length} real predicted records!`);
+            } else {
+                // Show empty state
+                updateEmptyDashboard();
+            }
+        }
+        
+        // Update empty dashboard state
+        function updateEmptyDashboard() {
+            document.getElementById('solarStat').textContent = '0 kWh';
+            document.getElementById('windStat').textContent = '0 kWh';
+            document.getElementById('demandStat').textContent = '0 kWh';
+            document.getElementById('efficiencyStat').textContent = '0%';
+            document.getElementById('forecastDays').textContent = '0';
+            document.getElementById('avgGeneration').textContent = '0 kWh';
+            document.getElementById('avgDemand').textContent = '0 kWh';
+            
+            // Clear charts
+            if (generationChart) {
+                generationChart.data.labels = [];
+                generationChart.data.datasets[0].data = [];
+                generationChart.data.datasets[1].data = [];
+                generationChart.update();
+            }
+            
+            if (demandChart) {
+                demandChart.data.labels = [];
+                demandChart.data.datasets[0].data = [];
+                demandChart.data.datasets[1].data = [];
+                demandChart.update();
+            }
+        }
+        
+        // Update statistics with real predicted values
+        function updateStats(forecast) {
+            if (forecast.length === 0) return;
+            
+            const latest = forecast[forecast.length - 1];
+            document.getElementById('solarStat').textContent = `${latest.solar_energy?.toFixed(1) || 0} kWh`;
+            document.getElementById('windStat').textContent = `${latest.wind_energy?.toFixed(1) || 0} kWh`;
+            document.getElementById('demandStat').textContent = `${latest.demand?.toFixed(1) || 0} kWh`;
+            
+            // Calculate system efficiency
+            const totalGeneration = (latest.solar_energy || 0) + (latest.wind_energy || 0);
+            const efficiency = latest.demand > 0 ? ((totalGeneration / latest.demand) * 100).toFixed(1) : 0;
+            document.getElementById('efficiencyStat').textContent = `${efficiency}%`;
+            
+            // Calculate averages
+            const avgGen = forecast.reduce((sum, item) => sum + (item.solar_energy || 0) + (item.wind_energy || 0), 0) / forecast.length;
+            const avgDem = forecast.reduce((sum, item) => sum + (item.demand || 0), 0) / forecast.length;
+            
+            document.getElementById('forecastDays').textContent = forecast.length;
+            document.getElementById('avgGeneration').textContent = `${avgGen.toFixed(1)} kWh`;
+            document.getElementById('avgDemand').textContent = `${avgDem.toFixed(1)} kWh`;
+        }
+        
+        // Update charts with real predicted data
+        function updateCharts(forecast) {
+            if (!forecast || forecast.length === 0) return;
+            
+            const labels = forecast.map(item => item.date);
+            const solarData = forecast.map(item => item.solar_energy || 0);
+            const windData = forecast.map(item => item.wind_energy || 0);
+            const demandData = forecast.map(item => item.demand || 0);
+            const totalData = forecast.map(item => (item.solar_energy || 0) + (item.wind_energy || 0));
+            
+            // Update generation chart
+            if (generationChart) {
+                generationChart.data.labels = labels;
+                generationChart.data.datasets[0].data = solarData;
+                generationChart.data.datasets[1].data = windData;
+                generationChart.update();
+            }
+            
+            // Update demand chart
+            if (demandChart) {
+                demandChart.data.labels = labels;
+                demandChart.data.datasets[0].data = demandData;
+                demandChart.data.datasets[1].data = totalData;
+                demandChart.update();
+            }
+        }
+        
+        // Update forecast table with real predicted values
+        function updateForecastTable(forecast) {
+            if (!forecast || forecast.length === 0) return;
+            
+            const tbody = document.getElementById('forecastTableBody');
+            tbody.innerHTML = '';
+            
+            forecast.forEach(item => {
+                const row = tbody.insertRow();
+                const totalGen = (item.solar_energy || 0) + (item.wind_energy || 0);
+                row.innerHTML = `
+                    <td>${item.date}</td>
+                    <td>${(item.solar_energy || 0).toFixed(2)}</td>
+                    <td>${(item.wind_energy || 0).toFixed(2)}</td>
+                    <td>${totalGen.toFixed(2)}</td>
+                    <td>${(item.demand || 0).toFixed(2)}</td>
+                    <td>${(item.battery_storage || 0).toFixed(2)}</td>
+                    <td>${(item.energy_export || 0).toFixed(2)}</td>
+                `;
+            });
+        }
+        
+        // Toggle side menu
+        function toggleMenu() {
+            const dashboard = document.getElementById('sideDashboard');
+            const mainContent = document.getElementById('mainContent');
+            dashboard.classList.toggle('open');
+            mainContent.classList.toggle('shifted');
+        }
+        
+        // Show different sections
+        function showSection(section) {
+            // Hide all sections
+            document.getElementById('overviewSection').classList.add('hidden');
+            document.getElementById('forecastSection').classList.add('hidden');
+            document.getElementById('chatbotSection').classList.add('hidden');
+            
+            // Remove active class from all menu items
+            document.querySelectorAll('.menu-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected section and update menu
+            switch(section) {
+                case 'overview':
+                    document.getElementById('overviewSection').classList.remove('hidden');
+                    break;
+                case 'forecast':
+                    document.getElementById('forecastSection').classList.remove('hidden');
+                    break;
+                case 'chatbot':
+                    document.getElementById('chatbotSection').classList.remove('hidden');
+                    break;
+                case 'smartheal':
+                    window.location.href = 'smartheal.html';
+                    return;
+                case 'multigrid':
+                    window.location.href = 'multigrid.html';
+                    return;
+            }
+            
+            // Update active menu item
+            if (event && event.target) {
+                event.target.closest('.menu-item').classList.add('active');
+            }
+        }
+        
+        // Initialize all charts
+        function initializeCharts() {
+            // Generation Chart
+            const genCtx = document.getElementById('generationChart');
+            if (genCtx) {
+                generationChart = new Chart(genCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Solar Generation (kWh)',
+                            data: [],
+                            borderColor: 'rgb(255, 205, 86)',
+                            backgroundColor: 'rgba(255, 205, 86, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }, {
+                            label: 'Wind Generation (kWh)',
+                            data: [],
+                            borderColor: 'rgb(54, 162, 235)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: 'white' }
+                            }
+                        },
+                        scales: {
+                            x: { ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } },
+                            y: { ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }
+                        }
+                    }
+                });
+            }
+            
+            // Demand Chart
+            const demandCtx = document.getElementById('demandChart');
+            if (demandCtx) {
+                demandChart = new Chart(demandCtx.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Demand (kWh)',
+                            data: [],
+                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                            borderColor: 'rgb(255, 99, 132)',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }, {
+                            label: 'Total Generation (kWh)',
+                            data: [],
+                            backgroundColor: 'rgba(34, 197, 94, 0.6)',
+                            borderColor: 'rgb(34, 197, 94)',
+                            borderWidth: 1,
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: 'white' }
+                            }
+                        },
+                        scales: {
+                            x: { ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } },
+                            y: { ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }
+                        }
+                    }
+                });
+            }
+            
+            // Forecast Chart
+            const forecastCtx = document.getElementById('forecastChart');
+            if (forecastCtx) {
+                forecastChart = new Chart(forecastCtx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Solar (kWh)',
+                            data: [],
+                            borderColor: 'rgb(255, 205, 86)',
+                            backgroundColor: 'rgba(255, 205, 86, 0.2)',
+                            tension: 0.4
+                        }, {
+                            label: 'Wind (kWh)',
+                            data: [],
+                            borderColor: 'rgb(54, 162, 235)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            tension: 0.4
+                        }, {
+                            label: 'Demand (kWh)',
+                            data: [],
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: 'white' }
+                            }
+                        },
+                        scales: {
+                            x: { ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } },
+                            y: { ticks: { color: 'white' }, grid: { color: 'rgba(255, 255, 255, 0.1)' } }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Refresh data
+        function refreshData() {
+            loadRealForecastData();
+        }
+        
+        // Train Prophet model
+        function trainProphetModel() {
+            showAlert('Training Prophet AI model with your system parameters...', 'warning');
+            
+            fetch('/train_prophet', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showAlert('Prophet model trained successfully!', 'success');
+                    setTimeout(() => loadRealForecastData(), 1000);
+                } else {
+                    showAlert('Error training Prophet model: ' + data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                showAlert('Network error while training model', 'danger');
+            });
+        }
+        
+        // Show alert
+        function showAlert(message, type = 'success') {
+            const alertContainer = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `<span>${message}</span>`;
+            alertContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 4000);
+        }
+        
+        // Update last update time
+        function updateLastUpdateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            document.getElementById('lastUpdate').textContent = timeString;
+        }
+        
+        // Go to setup
+        function goToSetup() {
+            window.location.href = 'setup.html';
+        }
+        
+        // Chat functions
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage(message, 'user');
+            input.value = '';
+            
+            // Simulate AI response
+            setTimeout(() => {
+                const response = generateAIResponse(message);
+                addMessage(response, 'ai');
+            }, 500 + Math.random() * 1000);
+        }
+        
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+        
+        function addMessage(message, sender) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex items-start gap-3 mb-4';
+            
+            if (sender === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-user text-white text-sm"></i>
+                    </div>
+                    <div class="bg-blue-500/20 rounded-lg p-3 max-w-xs">
+                        <p class="text-white">${message}</p>
+                    </div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-robot text-white text-sm"></i>
+                    </div>
+                    <div class="bg-green-500/20 rounded-lg p-3 max-w-xs">
+                        <p class="text-white">${message}</p>
+                    </div>
+                `;
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+        
+        function generateAIResponse(message) {
+            const responses = [
+                "I'm analyzing your energy system based on your configured parameters for solar panels, wind turbines, and consumption patterns.",
+                "Your forecast data is generated using real calculations based on your system specifications from the setup.",
+                "The solar generation predictions account for your panel count, efficiency, and geographic location.",
+                "Wind generation forecasts use your turbine specifications and local wind patterns.",
+                "System efficiency is calculated from the ratio of total generation to your demand profile.",
+                "I can provide insights based on your actual energy configuration and predicted performance."
+            ];
+            
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+    </script>
+</body>
+</html>
