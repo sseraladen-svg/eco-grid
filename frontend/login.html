@@ -773,7 +773,7 @@
                                 <span class="text-xs text-green-400">Secure</span>
                             </div>
                         </div>
-                        <p class="text-slate-400 text-lg">Welcome back! Sign in to access your renewable energy dashboard.</p>
+                        <p class="text-slate-400 text-lg" id="formTitle">Welcome back! Sign in to access your renewable energy dashboard.</p>
                     </div>
                     
                     <!-- Security Badge -->
@@ -801,13 +801,12 @@
                     <!-- Login Form -->
                     <form id="loginForm" onsubmit="handleLogin(event)">
                         <div class="space-y-6">
-                            <div class="input-group">
+                            <div class="input-group" id="nameField" style="display: none;">
                                 <input 
                                     type="text" 
                                     id="name" 
                                     class="input-field" 
                                     placeholder="Full Name"
-                                    required
                                     autocomplete="name"
                                 >
                                 <i class="fas fa-user input-icon"></i>
@@ -895,7 +894,7 @@
                     <div class="mt-8 text-center">
                         <p class="text-slate-400">
                             Don't have an account? 
-                            <a href="#" onclick="showSignUp()" class="text-blue-400 hover:text-blue-300 transition font-medium">Sign up</a>
+                            <button type="button" onclick="toggleLoginMode()" id="toggleModeBtn" class="text-blue-400 hover:text-blue-300 transition font-medium bg-transparent border-none cursor-pointer">Sign up</button>
                         </p>
                     </div>
                 </div>
@@ -1003,12 +1002,23 @@
             loginBtn.classList.add("loading");
             loginBtn.disabled = true;
             
+            // Determine if this is login or registration based on mode
+            const requestData = {
+                email: email,
+                password: password
+            };
+            
+            // Only include name if we're in signup mode
+            if (!isLoginMode && name) {
+                requestData.name = name;
+            }
+            
             // Simulate authentication (in real app, this would be an API call)
             setTimeout(() => {
                 try {
                     // Store user data
                     const userData = {
-                        name: name,
+                        name: name || email.split('@')[0],
                         email: email,
                         loginTime: new Date().toISOString(),
                         remember: remember
@@ -1026,16 +1036,13 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({
-                            name: name,
-                            email: email,
-                            password: password
-                        })
+                        body: JSON.stringify(requestData)
                     })
                     .then(response => response.json())
                     .then(result => {
                         if (result.status === 'success') {
-                            showSuccess('Login successful! Redirecting...');
+                            const actionText = isLoginMode ? 'Login' : 'Registration';
+                            showSuccess(`${actionText} successful! Redirecting...`);
                             // Store user info in session storage
                             sessionStorage.setItem('userName', result.user.name);
                             sessionStorage.setItem('userEmail', result.user.email);
@@ -1069,7 +1076,8 @@
         
         // Validation function
         function validateInput(name, email, password) {
-            if (name.length < 2) {
+            // Only validate name if in signup mode
+            if (!isLoginMode && (!name || name.length < 2)) {
                 showError('Name must be at least 2 characters long.');
                 return false;
             }
@@ -1218,6 +1226,31 @@
         // Sign up
         function showSignUp() {
             showSuccess('Sign up feature coming soon!');
+        }
+        
+        // Toggle between login and signup mode
+        let isLoginMode = true;
+        function toggleLoginMode() {
+            isLoginMode = !isLoginMode;
+            const formTitle = document.getElementById('formTitle');
+            const toggleBtn = document.getElementById('toggleModeBtn');
+            const loginBtn = document.getElementById('loginBtn');
+            const nameField = document.getElementById('name');
+            
+            if (isLoginMode) {
+                formTitle.textContent = 'Welcome back! Sign in to access your renewable energy dashboard.';
+                toggleBtn.textContent = 'Sign up';
+                loginBtn.querySelector('.btn-text').textContent = 'Sign In';
+                nameField.style.display = 'none';
+                nameField.required = false;
+            } else {
+                formTitle.textContent = 'Create your account to start managing renewable energy.';
+                toggleBtn.textContent = 'Sign in';
+                loginBtn.querySelector('.btn-text').textContent = 'Create Account';
+                nameField.style.display = 'block';
+                nameField.required = true;
+                nameField.focus();
+            }
         }
         
         // Check for existing session
