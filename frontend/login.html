@@ -552,21 +552,7 @@
         });
     </script>
 </body>
-</html>    transition: color 0.3s ease;
-        }
-        
-        .input-field:focus + .input-icon {
-            color: #3b82f6;
-        }
-        
-        /* Button styles */
-        .btn-primary {
-            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-            color: white;
-            border: none;
-            padding: 16px 32px;
-            border-radius: 12px;
-            font-weight: 600;
+</html>
             font-size: 16px;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -728,6 +714,37 @@
             background: rgba(59, 130, 246, 0.1);
             border-color: rgba(59, 130, 246, 0.3);
         }
+        
+        /* Modal styles */
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Password field with toggle */
+        .input-group input {
+            padding-right: 48px;
+        }
+        
+        .input-group button {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #64748b;
+            transition: color 0.2s;
+        }
+        
+        .input-group button:hover {
+            color: #94a3b8;
+        }
     </style>
 </head>
 <body>
@@ -817,8 +834,23 @@
                                     required
                                     autocomplete="current-password"
                                     minlength="8"
+                                    oninput="checkPasswordStrength(this.value)"
                                 >
                                 <i class="fas fa-lock input-icon"></i>
+                                <button type="button" onclick="togglePassword()" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white transition">
+                                    <i class="fas fa-eye" id="passwordToggleIcon"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Password Strength Indicator -->
+                            <div class="mb-4">
+                                <div class="flex gap-1 mb-2">
+                                    <div class="h-1 flex-1 rounded bg-slate-700" id="strength1"></div>
+                                    <div class="h-1 flex-1 rounded bg-slate-700" id="strength2"></div>
+                                    <div class="h-1 flex-1 rounded bg-slate-700" id="strength3"></div>
+                                    <div class="h-1 flex-1 rounded bg-slate-700" id="strength4"></div>
+                                </div>
+                                <p class="text-xs text-slate-400" id="strengthText">Password strength</p>
                             </div>
                             
                             <div class="flex items-center justify-between">
@@ -826,7 +858,7 @@
                                     <input type="checkbox" id="remember" class="checkbox">
                                     <label for="remember" class="text-slate-300 text-sm cursor-pointer">Remember me</label>
                                 </div>
-                                <a href="#" class="text-blue-400 text-sm hover:text-blue-300 transition">Forgot password?</a>
+                                <button type="button" onclick="openForgotPasswordModal()" class="text-blue-400 text-sm hover:text-blue-300 transition bg-transparent border-none cursor-pointer">Forgot password?</button>
                             </div>
                             
                             <button type="submit" id="loginBtn" class="btn-primary w-full flex items-center justify-center">
@@ -1065,6 +1097,93 @@
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         }
         
+        // Toggle password visibility
+        function togglePassword() {
+            const passwordInput = document.getElementById('password');
+            const toggleIcon = document.getElementById('passwordToggleIcon');
+            
+            if (passwordInput.type === 'password') {
+                passwordInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passwordInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+        
+        // Password strength checker
+        function checkPasswordStrength(password) {
+            let strength = 0;
+            const strengthBars = [
+                document.getElementById('strength1'),
+                document.getElementById('strength2'),
+                document.getElementById('strength3'),
+                document.getElementById('strength4')
+            ];
+            const strengthText = document.getElementById('strengthText');
+            
+            // Reset strength bars
+            strengthBars.forEach(bar => {
+                bar.classList.remove('bg-red-500', 'bg-yellow-500', 'bg-green-500');
+                bar.classList.add('bg-slate-700');
+            });
+            
+            if (password.length >= 8) strength++;
+            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
+            if (password.match(/\d/)) strength++;
+            if (password.match(/[^a-zA-Z\d]/)) strength++;
+            
+            const colors = ['bg-red-500', 'bg-yellow-500', 'bg-green-500'];
+            const texts = ['Weak', 'Fair', 'Good', 'Strong'];
+            
+            for (let i = 0; i < strength; i++) {
+                strengthBars[i].classList.remove('bg-slate-700');
+                if (strength <= 2) {
+                    strengthBars[i].classList.add('bg-red-500');
+                } else if (strength <= 3) {
+                    strengthBars[i].classList.add('bg-yellow-500');
+                } else {
+                    strengthBars[i].classList.add('bg-green-500');
+                }
+            }
+            
+            strengthText.textContent = strength > 0 ? texts[strength - 1] : 'Password strength';
+            strengthText.className = `text-xs ${strength <= 2 ? 'text-red-400' : strength <= 3 ? 'text-yellow-400' : 'text-green-400'}`;
+        }
+        
+        // Forgot password function
+        function openForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').classList.remove('hidden');
+            document.getElementById('resetEmail').value = document.getElementById('email').value;
+            document.getElementById('forgotPasswordContent').classList.remove('hidden');
+            document.getElementById('forgotPasswordSuccess').classList.add('hidden');
+        }
+        
+        function closeForgotPasswordModal() {
+            document.getElementById('forgotPasswordModal').classList.add('hidden');
+        }
+        
+        function sendResetLink() {
+            const email = document.getElementById('resetEmail').value;
+            if (email && isValidEmail(email)) {
+                // Simulate API call
+                showSuccess('Password reset link sent! (Demo)');
+                document.getElementById('forgotPasswordContent').classList.add('hidden');
+                document.getElementById('forgotPasswordSuccess').classList.remove('hidden');
+                
+                // In real implementation:
+                // fetch('/forgot-password', {
+                //     method: 'POST',
+                //     headers: { 'Content-Type': 'application/json' },
+                //     body: JSON.stringify({ email })
+                // })
+            } else {
+                showError('Please enter a valid email address.');
+            }
+        }
+        
         // Message functions
         function showError(message) {
             const errorEl = document.getElementById('errorMessage');
@@ -1147,5 +1266,39 @@
             });
         });
     </script>
+    
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-slate-800 rounded-xl p-8 max-w-md w-full mx-4 border border-slate-700">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-white">Reset Password</h3>
+                <button onclick="closeForgotPasswordModal()" class="text-slate-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="forgotPasswordContent">
+                <p class="text-slate-400 mb-4">Enter your email address and we'll send you a link to reset your password.</p>
+                <div class="input-group mb-4">
+                    <input 
+                        type="email" 
+                        id="resetEmail" 
+                        class="input-field" 
+                        placeholder="Email Address"
+                        required
+                    >
+                    <i class="fas fa-envelope input-icon"></i>
+                </div>
+                <button onclick="sendResetLink()" class="btn-primary w-full">Send Reset Link</button>
+            </div>
+            <div id="forgotPasswordSuccess" class="hidden text-center">
+                <div class="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check text-green-500 text-2xl"></i>
+                </div>
+                <h4 class="text-white font-semibold mb-2">Check your email</h4>
+                <p class="text-slate-400 text-sm">We've sent a password reset link to your email address.</p>
+                <button onclick="closeForgotPasswordModal()" class="mt-4 text-blue-400 hover:text-blue-300 text-sm">Close</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
