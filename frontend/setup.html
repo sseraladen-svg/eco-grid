@@ -669,6 +669,15 @@
         // Load existing setup when page loads
         document.addEventListener('DOMContentLoaded', function() {
             loadExistingSetup();
+            
+            // Initialize progress bar
+            const progressBar = document.getElementById("progress-bar");
+            const stepIndicator = document.getElementById("step-indicator");
+            
+            if(progressBar && stepIndicator) {
+                progressBar.style.width = "20%";
+                stepIndicator.textContent = "Step 1 of 5";
+            }
         });
 
         // Function to load existing setup data

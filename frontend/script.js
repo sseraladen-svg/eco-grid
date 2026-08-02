@@ -1,11 +1,19 @@
 function nextStep(step){
+    // Hide all steps
+    for(let i=1;i<=5;i++){
+        document.getElementById("step"+i).style.display="none"
+    }
 
-for(let i=1;i<=5;i++){
-document.getElementById("step"+i).style.display="none"
-}
+    // Show current step
+    document.getElementById("step"+step).style.display="block"
 
-document.getElementById("step"+step).style.display="block"
+    // Update progress bar and step indicator
+    const progressBar = document.getElementById("progress-bar");
+    const stepIndicator = document.getElementById("step-indicator");
+    const progressPercent = (step / 5) * 100;
 
+    progressBar.style.width = progressPercent + "%";
+    stepIndicator.textContent = "Step " + step + " of 5";
 }
 
 
@@ -76,13 +84,13 @@ fetch('/submit_setup', {
 .then(response => response.json())
 .then(result => {
     console.log('Setup data submitted:', result);
-    // Redirect to AI page
-    window.location.href = "ai.html";
+    // Redirect to dashboard page
+    window.location.href = "/dashboard";
 })
 .catch(error => {
     console.error('Error submitting setup:', error);
-    // Still redirect to AI page even if submission fails
-    window.location.href = "ai.html";
+    // Still redirect to dashboard page even if submission fails
+    window.location.href = "/dashboard";
 });
 
 }
