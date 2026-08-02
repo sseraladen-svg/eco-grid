@@ -3,556 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoGrid AI - Enterprise Energy Management</title>
-    <link rel="stylesheet" href="assets/css/enterprise.css">
+    <title>EcoGrid AI - Professional Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Enterprise Login Specific Styles */
-        .enterprise-login-container {
-            min-height: 100vh;
-            display: flex;
-            background: linear-gradient(135deg, var(--neutral-900) 0%, var(--neutral-800) 100%);
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
         }
-
-        .enterprise-login-left {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: var(--space-3xl);
-            background: linear-gradient(135deg, var(--primary-900) 0%, var(--primary-800) 100%);
-            color: white;
-            position: relative;
+        
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Animated background */
+        .animated-bg {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
             overflow: hidden;
         }
-
-        .enterprise-login-left::before {
+        
+        .animated-bg::before {
             content: '';
             position: absolute;
-            top: -50%;
-            left: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            top: -50%;
+            left: -50%;
+            z-index: 1;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
             animation: rotate 30s linear infinite;
         }
-
+        
         @keyframes rotate {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        .enterprise-login-right {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: var(--space-3xl);
-            background: white;
+        
+        /* Glass effect */
+        .glass-card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
         }
-
-        .enterprise-login-brand {
-            text-align: center;
-            margin-bottom: var(--space-3xl);
+        
+        .glass-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+            border-color: rgba(148, 163, 184, 0.2);
+        }
+        
+        /* Input styles */
+        .input-group {
             position: relative;
-            z-index: 10;
         }
-
-        .enterprise-login-logo {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, var(--primary-400) 0%, var(--primary-600) 100%);
-            border-radius: var(--radius-xl);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto var(--space-lg);
-            box-shadow: var(--shadow-2xl);
-        }
-
-        .enterprise-login-logo i {
-            font-size: 2rem;
-            color: white;
-        }
-
-        .enterprise-login-title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: var(--space-sm);
-            background: linear-gradient(135deg, white 0%, var(--neutral-200) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .enterprise-login-subtitle {
-            font-size: 1.125rem;
-            color: rgba(255, 255, 255, 0.8);
-            font-weight: 400;
-        }
-
-        .enterprise-login-features {
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-lg);
-            position: relative;
-            z-index: 10;
-        }
-
-        .enterprise-login-feature {
-            display: flex;
-            align-items: center;
-            gap: var(--space-md);
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        .enterprise-login-feature i {
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: var(--radius-lg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.125rem;
-        }
-
-        .enterprise-login-card {
+        
+        .input-field {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            color: #f1f5f9;
+            padding: 16px 20px 16px 50px;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
             width: 100%;
-            max-width: 480px;
-            background: white;
-            border-radius: var(--radius-xl);
-            padding: var(--space-3xl);
-            box-shadow: var(--shadow-2xl);
-            border: 1px solid var(--neutral-200);
-        }
-
-        .enterprise-login-header {
-            text-align: center;
-            margin-bottom: var(--space-2xl);
-        }
-
-        .enterprise-login-header h1 {
-            font-size: 1.875rem;
-            font-weight: 700;
-            color: var(--neutral-900);
-            margin-bottom: var(--space-sm);
-        }
-
-        .enterprise-login-header p {
-            color: var(--neutral-600);
-            font-size: 1rem;
-        }
-
-        .enterprise-login-divider {
-            display: flex;
-            align-items: center;
-            margin: var(--space-xl) 0;
-            gap: var(--space-md);
-        }
-
-        .enterprise-login-divider::before,
-        .enterprise-login-divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--neutral-200);
-        }
-
-        .enterprise-login-divider span {
-            color: var(--neutral-500);
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        .enterprise-social-login {
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-md);
-            margin-bottom: var(--space-xl);
-        }
-
-        .enterprise-social-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--space-md);
-            padding: var(--space-md);
-            border: 1px solid var(--neutral-300);
-            border-radius: var(--radius-lg);
-            background: white;
-            color: var(--neutral-700);
-            font-weight: 500;
-            text-decoration: none;
-            transition: all var(--transition-fast);
-        }
-
-        .enterprise-social-btn:hover {
-            background: var(--neutral-50);
-            border-color: var(--neutral-400);
-            transform: translateY(-1px);
-            box-shadow: var(--shadow-md);
-        }
-
-        .enterprise-social-btn.google:hover {
-            border-color: var(--error-500);
-            background: var(--error-50);
-            color: var(--error-700);
-        }
-
-        .enterprise-social-btn.microsoft:hover {
-            border-color: var(--primary-500);
-            background: var(--primary-50);
-            color: var(--primary-700);
-        }
-
-        .enterprise-login-footer {
-            text-align: center;
-            margin-top: var(--space-2xl);
-            padding-top: var(--space-xl);
-            border-top: 1px solid var(--neutral-200);
-        }
-
-        .enterprise-login-footer p {
-            color: var(--neutral-600);
-            font-size: 0.875rem;
-        }
-
-        .enterprise-login-footer a {
-            color: var(--primary-600);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .enterprise-login-footer a:hover {
-            color: var(--primary-700);
-            text-decoration: underline;
-        }
-
-        .enterprise-alert {
-            padding: var(--space-md);
-            border-radius: var(--radius-md);
-            margin-bottom: var(--space-lg);
-            font-size: 0.875rem;
-            display: flex;
-            align-items: center;
-            gap: var(--space-sm);
-        }
-
-        .enterprise-alert-success {
-            background: var(--success-50);
-            color: var(--success-700);
-            border: 1px solid var(--success-200);
-        }
-
-        .enterprise-alert-error {
-            background: var(--error-50);
-            color: var(--error-700);
-            border: 1px solid var(--error-200);
-        }
-
-        .enterprise-alert-info {
-            background: var(--info-50);
-            color: var(--info-700);
-            border: 1px solid var(--info-200);
-        }
-
-        /* Responsive Design */
-        @media (max-width: 1024px) {
-            .enterprise-login-left {
-                display: none;
-            }
-            
-            .enterprise-login-right {
-                flex: 1;
-            }
-        }
-
-        @media (max-width: 640px) {
-            .enterprise-login-container {
-                min-height: 100vh;
-            }
-            
-            .enterprise-login-right {
-                padding: var(--space-lg);
-            }
-            
-            .enterprise-login-card {
-                padding: var(--space-xl);
-            }
-            
-            .enterprise-login-header h1 {
-                font-size: 1.5rem;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="enterprise-login-container">
-        <!-- Left Panel - Branding & Features -->
-        <div class="enterprise-login-left">
-            <div class="enterprise-login-brand">
-                <div class="enterprise-login-logo">
-                    <i class="fas fa-bolt"></i>
-                </div>
-                <h1 class="enterprise-login-title">EcoGrid AI</h1>
-                <p class="enterprise-login-subtitle">Enterprise Energy Management Platform</p>
-            </div>
-            
-            <div class="enterprise-login-features">
-                <div class="enterprise-login-feature">
-                    <i class="fas fa-chart-line"></i>
-                    <div>
-                        <h3 style="font-weight: 600; margin-bottom: var(--space-xs);">AI-Powered Analytics</h3>
-                        <p style="font-size: 0.875rem; opacity: 0.9;">Advanced forecasting with machine learning</p>
-                    </div>
-                </div>
-                
-                <div class="enterprise-login-feature">
-                    <i class="fas fa-solar-panel"></i>
-                    <div>
-                        <h3 style="font-weight: 600; margin-bottom: var(--space-xs);">Multi-Source Energy</h3>
-                        <p style="font-size: 0.875rem; opacity: 0.9;">Solar, wind, and battery optimization</p>
-                    </div>
-                </div>
-                
-                <div class="enterprise-login-feature">
-                    <i class="fas fa-shield-alt"></i>
-                    <div>
-                        <h3 style="font-weight: 600; margin-bottom: var(--space-xs);">Enterprise Security</h3>
-                        <p style="font-size: 0.875rem; opacity: 0.9;">256-bit encryption and SSO integration</p>
-                    </div>
-                </div>
-                
-                <div class="enterprise-login-feature">
-                    <i class="fas fa-users"></i>
-                    <div>
-                        <h3 style="font-weight: 600; margin-bottom: var(--space-xs);">Team Collaboration</h3>
-                        <p style="font-size: 0.875rem; opacity: 0.9;">Real-time monitoring and alerts</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Right Panel - Login Form -->
-        <div class="enterprise-login-right">
-            <div class="enterprise-login-card">
-                <div class="enterprise-login-header">
-                    <h1>Sign In</h1>
-                    <p>Access your energy management dashboard</p>
-                </div>
-                
-                <!-- Alert Messages -->
-                <div id="successMessage" class="enterprise-alert enterprise-alert-success" style="display: none;">
-                    <i class="fas fa-check-circle"></i>
-                    <span id="successText"></span>
-                </div>
-                
-                <div id="errorMessage" class="enterprise-alert enterprise-alert-error" style="display: none;">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span id="errorText"></span>
-                </div>
-                
-                <!-- Login Form -->
-                <form id="loginForm" class="enterprise-form">
-                    <div class="enterprise-form-group">
-                        <label class="enterprise-form-label" for="email">Email Address</label>
-                        <input 
-                            type="email" 
-                            id="email" 
-                            name="email" 
-                            class="enterprise-form-input" 
-                            placeholder="Enter your email"
-                            required
-                        >
-                    </div>
-                    
-                    <div class="enterprise-form-group">
-                        <label class="enterprise-form-label" for="password">Password</label>
-                        <input 
-                            type="password" 
-                            id="password" 
-                            name="password" 
-                            class="enterprise-form-input" 
-                            placeholder="Enter your password"
-                            required
-                        >
-                    </div>
-                    
-                    <div class="enterprise-form-group">
-                        <label style="display: flex; align-items: center; gap: var(--space-sm); cursor: pointer;">
-                            <input type="checkbox" id="remember" name="remember" style="margin: 0;">
-                            <span class="text-sm text-neutral-600">Remember me for 30 days</span>
-                        </label>
-                    </div>
-                    
-                    <button type="submit" class="enterprise-btn enterprise-btn-primary w-full">
-                        <i class="fas fa-sign-in-alt"></i>
-                        Sign In
-                    </button>
-                </form>
-                
-                <div class="enterprise-login-divider">
-                    <span>OR</span>
-                </div>
-                
-                <!-- Social Login -->
-                <div class="enterprise-social-login">
-                    <a href="/auth/google" class="enterprise-social-btn google">
-                        <i class="fab fa-google"></i>
-                        Continue with Google
-                    </a>
-                    
-                    <a href="/auth/microsoft" class="enterprise-social-btn microsoft">
-                        <i class="fab fa-microsoft"></i>
-                        Continue with Microsoft
-                    </a>
-                </div>
-                
-                <!-- Footer -->
-                <div class="enterprise-login-footer">
-                    <p>
-                        Don't have an account? 
-                        <a href="#" onclick="showRegisterForm()">Contact your administrator</a>
-                    </p>
-                    <p style="margin-top: var(--space-sm);">
-                        <a href="#">Forgot your password?</a>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Form submission
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const data = {
-                email: formData.get('email'),
-                password: formData.get('password')
-            };
-            
-            // Show loading state
-            const submitBtn = this.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
-            submitBtn.disabled = true;
-            
-            try {
-                const response = await fetch('/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                const result = await response.json();
-                
-                if (response.ok && result.status === 'success') {
-                    showAlert('Login successful! Redirecting...', 'success');
-                    setTimeout(() => {
-                        window.location.href = '/dashboard';
-                    }, 1500);
-                } else {
-                    showAlert(result.error || 'Login failed. Please check your credentials.', 'error');
-                }
-            } catch (error) {
-                showAlert('Network error. Please try again.', 'error');
-            } finally {
-                // Reset button state
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }
-        });
-        
-        // Alert functions
-        function showAlert(message, type) {
-            const successAlert = document.getElementById('successMessage');
-            const errorAlert = document.getElementById('errorMessage');
-            const infoAlert = document.getElementById('infoMessage');
-            
-            // Hide all alerts
-            successAlert.style.display = 'none';
-            errorAlert.style.display = 'none';
-            if (infoAlert) infoAlert.style.display = 'none';
-            
-            // Show appropriate alert
-            if (type === 'success') {
-                document.getElementById('successText').textContent = message;
-                successAlert.style.display = 'flex';
-            } else if (type === 'error') {
-                document.getElementById('errorText').textContent = message;
-                errorAlert.style.display = 'flex';
-            } else if (type === 'info') {
-                if (!infoAlert) {
-                    const infoDiv = document.createElement('div');
-                    infoDiv.id = 'infoMessage';
-                    infoDiv.className = 'enterprise-alert enterprise-alert-info';
-                    infoDiv.innerHTML = `<i class="fas fa-info-circle"></i><span id="infoText"></span>`;
-                    document.getElementById('loginForm').before(infoDiv);
-                }
-                document.getElementById('infoText').textContent = message;
-                infoAlert.style.display = 'flex';
-            }
-            
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                successAlert.style.display = 'none';
-                errorAlert.style.display = 'none';
-                if (infoAlert) infoAlert.style.display = 'none';
-            }, 5000);
         }
         
-        // Check for login success parameter
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('login_success') === 'true') {
-            showAlert('Registration successful! Please sign in.', 'success');
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: rgba(15, 23, 42, 0.8);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
         
-        // Handle registration form (placeholder)
-        function showRegisterForm() {
-            showAlert('Please contact your system administrator to create an account.', 'info');
+        .input-field::placeholder {
+            color: #64748b;
         }
         
-        // Add input validation feedback
-        document.getElementById('email').addEventListener('blur', function() {
-            const email = this.value;
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            
-            if (email && !emailRegex.test(email)) {
-                this.setCustomValidity('Please enter a valid email address');
-            } else {
-                this.setCustomValidity('');
-            }
-        });
+        .input-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #64748b;
+            font-size: 18px;
+            transition: color 0.3s ease;
+        }
         
-        // Add password strength indicator
-        document.getElementById('password').addEventListener('input', function() {
-            const password = this.value;
-            let strength = 0;
-            
-            if (password.length >= 8) strength++;
-            if (password.match(/[a-z]/)) strength++;
-            if (password.match(/[A-Z]/)) strength++;
-            if (password.match(/[0-9]/)) strength++;
-            if (password.match(/[^a-zA-Z0-9]/)) strength++;
-            
-            // Visual feedback (optional enhancement)
-            if (strength >= 3) {
-                this.style.borderColor = 'var(--success-500)';
-            } else if (strength >= 2) {
-                this.style.borderColor = 'var(--warning-500)';
-            } else {
-                this.style.borderColor = 'var(--neutral-300)';
-            }
-        });
-    </script>
-</body>
-</html>
+        .input-field:focus + .input-icon {
+            color: #3b82f6;
+        }
+        
+        /* Button styles */
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: 600;
             font-size: 16px;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -714,44 +274,6 @@
             background: rgba(59, 130, 246, 0.1);
             border-color: rgba(59, 130, 246, 0.3);
         }
-        
-        /* Modal styles */
-        .modal-overlay {
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(4px);
-        }
-        
-        .hidden {
-            display: none !important;
-        }
-        
-        /* Password field with toggle */
-        .input-group input {
-            padding-right: 48px;
-        }
-        
-        .input-group button {
-            position: absolute;
-            right: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #64748b;
-            transition: color 0.2s;
-        }
-        
-        .input-group button:hover {
-            color: #94a3b8;
-        }
-        
-        /* Password strength bars */
-        .strength-bar {
-            height: 4px;
-            border-radius: 2px;
-            transition: all 0.3s ease;
-        }
     </style>
 </head>
 <body>
@@ -763,35 +285,14 @@
                 
                 <!-- Left Panel - Login Form -->
                 <div class="glass-card p-8 lg:p-12">
-                    <!-- Enterprise Header -->
                     <div class="mb-8">
-                        <div class="flex items-center justify-between mb-6">
-                            <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
-                                    <i class="fas fa-bolt text-white text-xl"></i>
-                                </div>
-                                <div>
-                                    <h1 class="text-3xl font-bold text-white">EcoGrid AI</h1>
-                                    <p class="text-xs text-blue-400 font-medium">Enterprise Edition</p>
-                                </div>
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
+                                <i class="fas fa-bolt text-white text-xl"></i>
                             </div>
-                            <div class="flex items-center space-x-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
-                                <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                                <span class="text-xs text-green-400">Secure</span>
-                            </div>
+                            <h1 class="text-3xl font-bold text-white">EcoGrid AI</h1>
                         </div>
-                        <p class="text-slate-400 text-lg" id="formTitle">Welcome back! Sign in to access your renewable energy dashboard.</p>
-                    </div>
-                    
-                    <!-- Security Badge -->
-                    <div class="mb-6 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                        <div class="flex items-center space-x-3">
-                            <i class="fas fa-shield-alt text-blue-400 text-lg"></i>
-                            <div>
-                                <p class="text-sm font-medium text-blue-400">Enterprise Security</p>
-                                <p class="text-xs text-gray-400">256-bit encryption · SSO enabled · 2FA available</p>
-                            </div>
-                        </div>
+                        <p class="text-slate-400 text-lg">Welcome back! Sign in to access your renewable energy dashboard.</p>
                     </div>
                     
                     <!-- Error/Success Messages -->
@@ -808,12 +309,13 @@
                     <!-- Login Form -->
                     <form id="loginForm" onsubmit="handleLogin(event)">
                         <div class="space-y-6">
-                            <div class="input-group" id="nameField" style="display: none;">
+                            <div class="input-group">
                                 <input 
                                     type="text" 
                                     id="name" 
                                     class="input-field" 
                                     placeholder="Full Name"
+                                    required
                                     autocomplete="name"
                                 >
                                 <i class="fas fa-user input-icon"></i>
@@ -840,23 +342,8 @@
                                     required
                                     autocomplete="current-password"
                                     minlength="8"
-                                    oninput="checkPasswordStrength(this.value)"
                                 >
                                 <i class="fas fa-lock input-icon"></i>
-                                <button type="button" onclick="togglePassword()" class="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white transition">
-                                    <i class="fas fa-eye" id="passwordToggleIcon"></i>
-                                </button>
-                            </div>
-                            
-                            <!-- Password Strength Indicator -->
-                            <div class="mb-4">
-                                <div class="flex gap-1 mb-2">
-                                    <div class="strength-bar flex-1 bg-slate-700" id="strength1"></div>
-                                    <div class="strength-bar flex-1 bg-slate-700" id="strength2"></div>
-                                    <div class="strength-bar flex-1 bg-slate-700" id="strength3"></div>
-                                    <div class="strength-bar flex-1 bg-slate-700" id="strength4"></div>
-                                </div>
-                                <p class="text-xs text-slate-400" id="strengthText">Password strength</p>
                             </div>
                             
                             <div class="flex items-center justify-between">
@@ -864,7 +351,7 @@
                                     <input type="checkbox" id="remember" class="checkbox">
                                     <label for="remember" class="text-slate-300 text-sm cursor-pointer">Remember me</label>
                                 </div>
-                                <button type="button" onclick="openForgotPasswordModal()" class="text-blue-400 text-sm hover:text-blue-300 transition bg-transparent border-none cursor-pointer">Forgot password?</button>
+                                <a href="#" class="text-blue-400 text-sm hover:text-blue-300 transition">Forgot password?</a>
                             </div>
                             
                             <button type="submit" id="loginBtn" class="btn-primary w-full flex items-center justify-center">
@@ -901,7 +388,7 @@
                     <div class="mt-8 text-center">
                         <p class="text-slate-400">
                             Don't have an account? 
-                            <button type="button" onclick="toggleLoginMode()" id="toggleModeBtn" class="text-blue-400 hover:text-blue-300 transition font-medium bg-transparent border-none cursor-pointer">Sign up</button>
+                            <a href="#" onclick="showSignUp()" class="text-blue-400 hover:text-blue-300 transition font-medium">Sign up</a>
                         </p>
                     </div>
                 </div>
@@ -986,6 +473,7 @@
         </div>
     </div>
     
+    <script src="script.js"></script>
     <script>
         // Enhanced login function
         function handleLogin(event) {
@@ -1009,23 +497,12 @@
             loginBtn.classList.add("loading");
             loginBtn.disabled = true;
             
-            // Determine if this is login or registration based on mode
-            const requestData = {
-                email: email,
-                password: password
-            };
-            
-            // Only include name if we're in signup mode
-            if (!isLoginMode && name) {
-                requestData.name = name;
-            }
-            
             // Simulate authentication (in real app, this would be an API call)
             setTimeout(() => {
                 try {
                     // Store user data
                     const userData = {
-                        name: name || email.split('@')[0],
+                        name: name,
                         email: email,
                         loginTime: new Date().toISOString(),
                         remember: remember
@@ -1043,22 +520,23 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify(requestData)
+                        body: JSON.stringify({
+                            name: name,
+                            email: email,
+                            password: password
+                        })
                     })
                     .then(response => response.json())
                     .then(result => {
                         if (result.status === 'success') {
-                            const actionText = isLoginMode ? 'Login' : 'Registration';
-                            showSuccess(`${actionText} successful! Redirecting...`);
+                            showSuccess('Login successful! Redirecting to dashboard...');
                             // Store user info in session storage
                             sessionStorage.setItem('userName', result.user.name);
                             sessionStorage.setItem('userEmail', result.user.email);
                             sessionStorage.setItem('userId', result.user.id);
                             
                             setTimeout(() => {
-                                // Use backend redirect or default to dashboard
-                                const redirectUrl = result.redirect || '/dashboard';
-                                window.location.href = redirectUrl;
+                                window.location.href = "/setup";
                             }, 1500);
                         } else {
                             showError(result.error || 'Login failed. Please try again.');
@@ -1083,8 +561,7 @@
         
         // Validation function
         function validateInput(name, email, password) {
-            // Only validate name if in signup mode
-            if (!isLoginMode && (!name || name.length < 2)) {
+            if (name.length < 2) {
                 showError('Name must be at least 2 characters long.');
                 return false;
             }
@@ -1110,93 +587,6 @@
         // Email validation
         function isValidEmail(email) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-        }
-        
-        // Toggle password visibility
-        function togglePassword() {
-            const passwordInput = document.getElementById('password');
-            const toggleIcon = document.getElementById('passwordToggleIcon');
-            
-            if (passwordInput.type === 'password') {
-                passwordInput.type = 'text';
-                toggleIcon.classList.remove('fa-eye');
-                toggleIcon.classList.add('fa-eye-slash');
-            } else {
-                passwordInput.type = 'password';
-                toggleIcon.classList.remove('fa-eye-slash');
-                toggleIcon.classList.add('fa-eye');
-            }
-        }
-        
-        // Password strength checker
-        function checkPasswordStrength(password) {
-            let strength = 0;
-            const strengthBars = [
-                document.getElementById('strength1'),
-                document.getElementById('strength2'),
-                document.getElementById('strength3'),
-                document.getElementById('strength4')
-            ];
-            const strengthText = document.getElementById('strengthText');
-            
-            // Reset strength bars
-            strengthBars.forEach(bar => {
-                bar.classList.remove('bg-red-500', 'bg-yellow-500', 'bg-green-500');
-                bar.classList.add('bg-slate-700');
-            });
-            
-            if (password.length >= 8) strength++;
-            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
-            if (password.match(/\d/)) strength++;
-            if (password.match(/[^a-zA-Z\d]/)) strength++;
-            
-            const colors = ['bg-red-500', 'bg-yellow-500', 'bg-green-500'];
-            const texts = ['Weak', 'Fair', 'Good', 'Strong'];
-            
-            for (let i = 0; i < strength; i++) {
-                strengthBars[i].classList.remove('bg-slate-700');
-                if (strength <= 2) {
-                    strengthBars[i].classList.add('bg-red-500');
-                } else if (strength <= 3) {
-                    strengthBars[i].classList.add('bg-yellow-500');
-                } else {
-                    strengthBars[i].classList.add('bg-green-500');
-                }
-            }
-            
-            strengthText.textContent = strength > 0 ? texts[strength - 1] : 'Password strength';
-            strengthText.className = `text-xs ${strength <= 2 ? 'text-red-400' : strength <= 3 ? 'text-yellow-400' : 'text-green-400'}`;
-        }
-        
-        // Forgot password function
-        function openForgotPasswordModal() {
-            document.getElementById('forgotPasswordModal').classList.remove('hidden');
-            document.getElementById('resetEmail').value = document.getElementById('email').value;
-            document.getElementById('forgotPasswordContent').classList.remove('hidden');
-            document.getElementById('forgotPasswordSuccess').classList.add('hidden');
-        }
-        
-        function closeForgotPasswordModal() {
-            document.getElementById('forgotPasswordModal').classList.add('hidden');
-        }
-        
-        function sendResetLink() {
-            const email = document.getElementById('resetEmail').value;
-            if (email && isValidEmail(email)) {
-                // Simulate API call
-                showSuccess('Password reset link sent! (Demo)');
-                document.getElementById('forgotPasswordContent').classList.add('hidden');
-                document.getElementById('forgotPasswordSuccess').classList.remove('hidden');
-                
-                // In real implementation:
-                // fetch('/forgot-password', {
-                //     method: 'POST',
-                //     headers: { 'Content-Type': 'application/json' },
-                //     body: JSON.stringify({ email })
-                // })
-            } else {
-                showError('Please enter a valid email address.');
-            }
         }
         
         // Message functions
@@ -1235,31 +625,6 @@
             showSuccess('Sign up feature coming soon!');
         }
         
-        // Toggle between login and signup mode
-        let isLoginMode = true;
-        function toggleLoginMode() {
-            isLoginMode = !isLoginMode;
-            const formTitle = document.getElementById('formTitle');
-            const toggleBtn = document.getElementById('toggleModeBtn');
-            const loginBtn = document.getElementById('loginBtn');
-            const nameField = document.getElementById('name');
-            
-            if (isLoginMode) {
-                formTitle.textContent = 'Welcome back! Sign in to access your renewable energy dashboard.';
-                toggleBtn.textContent = 'Sign up';
-                loginBtn.querySelector('.btn-text').textContent = 'Sign In';
-                nameField.style.display = 'none';
-                nameField.required = false;
-            } else {
-                formTitle.textContent = 'Create your account to start managing renewable energy.';
-                toggleBtn.textContent = 'Sign in';
-                loginBtn.querySelector('.btn-text').textContent = 'Create Account';
-                nameField.style.display = 'block';
-                nameField.required = true;
-                nameField.focus();
-            }
-        }
-        
         // Check for existing session
         document.addEventListener('DOMContentLoaded', function() {
             // Check for Google OAuth success
@@ -1267,7 +632,7 @@
             if (urlParams.get('login_success') === 'true') {
                 showSuccess('Google login successful! Redirecting...');
                 setTimeout(() => {
-                    window.location.href = urlParams.get('redirect') || '/dashboard';
+                    window.location.href = "/setup";
                 }, 1500);
                 return;
             }
@@ -1306,39 +671,5 @@
             });
         });
     </script>
-    
-    <!-- Forgot Password Modal -->
-    <div id="forgotPasswordModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
-        <div class="bg-slate-800 rounded-xl p-8 max-w-md w-full mx-4 border border-slate-700">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-white">Reset Password</h3>
-                <button onclick="closeForgotPasswordModal()" class="text-slate-400 hover:text-white">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div id="forgotPasswordContent">
-                <p class="text-slate-400 mb-4">Enter your email address and we'll send you a link to reset your password.</p>
-                <div class="input-group mb-4">
-                    <input 
-                        type="email" 
-                        id="resetEmail" 
-                        class="input-field" 
-                        placeholder="Email Address"
-                        required
-                    >
-                    <i class="fas fa-envelope input-icon"></i>
-                </div>
-                <button onclick="sendResetLink()" class="btn-primary w-full">Send Reset Link</button>
-            </div>
-            <div id="forgotPasswordSuccess" class="hidden text-center">
-                <div class="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-check text-green-500 text-2xl"></i>
-                </div>
-                <h4 class="text-white font-semibold mb-2">Check your email</h4>
-                <p class="text-slate-400 text-sm">We've sent a password reset link to your email address.</p>
-                <button onclick="closeForgotPasswordModal()" class="mt-4 text-blue-400 hover:text-blue-300 text-sm">Close</button>
-            </div>
-        </div>
-    </div>
 </body>
 </html>

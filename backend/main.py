@@ -15,7 +15,7 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent
 ROOT_DIR = BASE_DIR.parent
 FRONTEND_DIR = ROOT_DIR / 'frontend'
-DATA_DIR = ROOT_DIR / 'data'
+DATA_DIR = BASE_DIR / 'data'
 DB_FILE = BASE_DIR / 'ecogrid.db'
 
 sys.path.append(str(ROOT_DIR))

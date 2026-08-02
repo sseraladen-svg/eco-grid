@@ -19,8 +19,8 @@ from training.train_prophet import train_prophet as train_prophet_model
 from models import SystemConfiguration
 
 # Get the correct data directory
-BASE_DIR = Path(__file__).resolve().parent.parent
-DATA_DIR = BASE_DIR / 'backend' / 'data'
+BASE_DIR = Path(__file__).resolve().parent
+DATA_DIR = BASE_DIR / 'data'
 
 # Create Blueprint
 forecast_bp = Blueprint('forecast', __name__, url_prefix='/forecast')
