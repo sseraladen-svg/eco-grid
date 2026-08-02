@@ -26,6 +26,9 @@ from google_auth import init_google_auth
 from forecasting.forecast_generation import generate_forecast
 from training.train_prophet import train_prophet as train_prophet_model
 from forecast import register_forecast_routes
+from multigrid import register_multigrid_routes
+from export import register_export_routes
+from weather import fetch_and_cache_weather
 
 app = Flask(__name__, static_folder=str(FRONTEND_DIR), static_url_path='')
 
@@ -71,6 +74,20 @@ def forecasting_page():
 def dashboard():
     """Serve the dashboard page"""
     return send_from_directory(str(FRONTEND_DIR), "dashboard.html")
+
+
+@app.route("/forecasting")
+@login_required
+def forecasting():
+    """Serve the forecasting page"""
+    return send_from_directory(str(FRONTEND_DIR), "forecasting.html")
+
+
+@app.route("/multigrid")
+@login_required
+def multigrid():
+    """Serve the multigrid page"""
+    return send_from_directory(str(FRONTEND_DIR), "multigrid.html")
 
 
 @app.route("/navigation.html")
@@ -709,15 +726,32 @@ def calculate_prophet_statistics(forecast_data):
 def get_nasa_data():
     """Get NASA solar data for reference"""
     try:
-        # Check if NASA data file exists
-        nasa_data_path = DATA_DIR / "nasa_solar_data.csv"
+        # Get active configuration
+        active_config = SystemConfiguration.query.filter_by(
+            user_id=current_user.id, is_active=True
+        ).first()
         
-        if not os.path.exists(nasa_data_path):
-            return jsonify([])  # Return empty array if no NASA data
+        if not active_config:
+            return jsonify([])  # Return empty array if no active config
         
-        # Read NASA data
+        config_data = json.loads(active_config.config_data)
+        location = config_data.get('location', {})
+        latitude = float(location.get('latitude', 28.6139))
+        longitude = float(location.get('longitude', 77.2090))
+        
+        # Try to fetch and cache weather data
+        weather_data_path = DATA_DIR / f"weather_{active_config.id}.csv"
+        
+        if not weather_data_path.exists():
+            try:
+                fetch_and_cache_weather(latitude, longitude, weather_data_path)
+            except Exception as e:
+                print(f"Error fetching weather data: {str(e)}")
+                return jsonify([])
+        
+        # Read weather data
         import pandas as pd
-        data = pd.read_csv(nasa_data_path)
+        data = pd.read_csv(weather_data_path)
         result = data.tail(100).to_dict(orient="records")  # Return last 100 records
         
         return jsonify(result)
@@ -733,6 +767,12 @@ def get_nasa_data():
 
 # Register forecast API routes
 register_forecast_routes(app)
+
+# Register multigrid API routes
+register_multigrid_routes(app)
+
+# Register export API routes
+register_export_routes(app)
 
 
 # -----------------------------

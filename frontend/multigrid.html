@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoGrid AI - Multi-Grid</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { font-family: 'Inter', sans-serif; }
+        body {
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #0f0f23 100%);
+            min-height: 100vh;
+            color: #ffffff;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+        }
+        .site-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            transition: all 0.2s ease;
+        }
+        .site-card:hover {
+            border-color: rgba(59, 130, 246, 0.5);
+            transform: translateY(-2px);
+        }
+        .site-card.active-site {
+            border-color: #22c55e;
+            box-shadow: 0 0 0 1px #22c55e;
+        }
+        .btn {
+            padding: 0.5rem 1.25rem;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-success { background: #22c55e; color: white; }
+        .btn-success:hover { background: #16a34a; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .checkbox-compare { width: 18px; height: 18px; }
+    </style>
+</head>
+<body>
+    <div id="nav-container"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold text-white mb-2">Multi-Grid</h1>
+            <p class="text-gray-400">Manage and compare every site on your account. Click a site to make it active, or select two to compare.</p>
+        </div>
+
+        <div id="loadingState" class="text-center text-gray-400 py-16">
+            <i class="fas fa-circle-notch fa-spin text-3xl mb-4"></i>
+            <p>Loading your sites...</p>
+        </div>
+
+        <div id="emptyState" class="hidden text-center text-gray-400 py-16 glass-card">
+            <i class="fas fa-solar-panel text-4xl mb-4"></i>
+            <p class="text-lg">No sites configured yet</p>
+            <a href="/setup" class="btn btn-primary inline-block mt-4">Add your first site</a>
+        </div>
+
+        <div id="siteGrid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10"></div>
+
+        <div class="flex justify-center mb-10">
+            <button id="compareBtn" class="btn btn-primary hidden" onclick="compareSelected()">
+                <i class="fas fa-chart-bar"></i> Compare selected sites
+            </button>
+        </div>
+
+        <div id="compareResults" class="hidden">
+            <h2 class="text-2xl font-bold text-white mb-4">Comparison — 30-day generation</h2>
+            <div class="glass-card p-6 mb-6">
+                <canvas id="compareChart" height="90"></canvas>
+            </div>
+            <div id="compareSummary" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+        </div>
+    </div>
+
+    <script>
+        let allConfigs = [];
+        let selectedForCompare = new Set();
+        let compareChartInstance = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadNav();
+            loadConfigs();
+        });
+
+        async function loadNav() {
+            const res = await fetch('/navigation.html');
+            document.getElementById('nav-container').innerHTML = await res.text();
+        }
+
+        async function loadConfigs() {
+            try {
+                const res = await fetch('/api/user/configurations');
+                const data = await res.json();
+                allConfigs = data.configurations || [];
+
+                document.getElementById('loadingState').classList.add('hidden');
+
+                if (allConfigs.length === 0) {
+                    document.getElementById('emptyState').classList.remove('hidden');
+                    return;
+                }
+
+                renderGrid();
+                document.getElementById('siteGrid').classList.remove('hidden');
+                if (allConfigs.length > 1) {
+                    document.getElementById('compareBtn').classList.remove('hidden');
+                }
+            } catch (e) {
+                document.getElementById('loadingState').innerHTML =
+                    '<p class="text-red-400">Failed to load sites. Please refresh.</p>';
+            }
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('siteGrid');
+            grid.innerHTML = allConfigs.map(cfg => {
+                const loc = cfg.config_data.location || {};
+                const solar = cfg.config_data.solar || {};
+                const wind = cfg.config_data.wind || {};
+                const battery = cfg.config_data.battery || {};
+                return `
+                <div class="site-card p-6 ${cfg.is_active ? 'active-site' : ''}" id="card-${cfg.id}">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-white">${cfg.name}</h3>
+                            <p class="text-sm text-gray-400">
+                                <i class="fas fa-map-marker-alt"></i>
+                                ${loc.latitude || '—'}, ${loc.longitude || '—'}
+                            </p>
+                        </div>
+                        ${cfg.is_active ? '<span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">Active</span>' : ''}
+                    </div>
+                    <div class="space-y-1 text-sm text-gray-300 mb-4">
+                        <p><i class="fas fa-solar-panel w-5 text-yellow-400"></i> ${solar.panel_count || 0} panels &times; ${solar.panel_power || 0}W</p>
+                        <p><i class="fas fa-wind w-5 text-blue-400"></i> ${wind.turbine_count || 0} turbines &times; ${wind.rated_power || 0}W</p>
+                        <p><i class="fas fa-battery-half w-5 text-green-400"></i> ${battery.battery_capacity || 0} kWh storage</p>
+                    </div>
+                    <div class="flex items-center justify-between gap-2">
+                        <label class="flex items-center gap-2 text-sm text-gray-400">
+                            <input type="checkbox" class="checkbox-compare" onchange="toggleCompare(${cfg.id}, this.checked)">
+                            Compare
+                        </label>
+                        <button class="btn ${cfg.is_active ? 'btn-success' : 'btn-primary'}"
+                                ${cfg.is_active ? 'disabled' : ''}
+                                onclick="setActive(${cfg.id})">
+                            ${cfg.is_active ? '<i class="fas fa-check"></i> Active' : 'Make Active'}
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function toggleCompare(configId, checked) {
+            if (checked) selectedForCompare.add(configId);
+            else selectedForCompare.delete(configId);
+        }
+
+        async function setActive(configId) {
+            try {
+                const res = await fetch('/api/setup/set-active', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ config_id: configId })
+                });
+                if (!res.ok) throw new Error('Failed to switch site');
+                await loadConfigs();
+            } catch (e) {
+                alert('Could not switch active site: ' + e.message);
+            }
+        }
+
+        async function compareSelected() {
+            if (selectedForCompare.size < 2) {
+                alert('Select at least 2 sites to compare.');
+                return;
+            }
+            const ids = Array.from(selectedForCompare).join(',');
+            try {
+                const res = await fetch(`/api/setup/compare?configs=${ids}`);
+                const data = await res.json();
+                renderComparison(data.configurations || []);
+            } catch (e) {
+                alert('Comparison failed: ' + e.message);
+            }
+        }
+
+        function renderComparison(configs) {
+            document.getElementById('compareResults').classList.remove('hidden');
+
+            const colors = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#a855f7'];
+            const labels = configs[0]?.forecast.map(d => d.date) || [];
+
+            const datasets = configs.map((cfg, i) => ({
+                label: cfg.name,
+                data: cfg.forecast.map(d => d.total_generation),
+                borderColor: colors[i % colors.length],
+                backgroundColor: colors[i % colors.length] + '33',
+                fill: false,
+                tension: 0.3
+            }));
+
+            if (compareChartInstance) compareChartInstance.destroy();
+            compareChartInstance = new Chart(document.getElementById('compareChart'), {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { labels: { color: '#fff' } } },
+                    scales: {
+                        x: { ticks: { color: '#aaa' } },
+                        y: { ticks: { color: '#aaa' } }
+                    }
+                }
+            });
+
+            const summary = document.getElementById('compareSummary');
+            summary.innerHTML = configs.map(cfg => `
+                <div class="glass-card p-6">
+                    <h4 class="text-lg font-bold text-white mb-2">${cfg.name}</h4>
+                    <p class="text-gray-400 text-sm mb-1">30-day total: <span class="text-white font-semibold">${cfg.total_30day_generation} kWh</span></p>
+                    <p class="text-gray-400 text-sm">Average daily: <span class="text-white font-semibold">${cfg.average_daily_generation} kWh</span></p>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
