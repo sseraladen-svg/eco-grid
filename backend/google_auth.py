@@ -10,8 +10,8 @@ import json
 import secrets
 
 # Google OAuth configuration
-GOOGLE_CLIENT_ID = os.environ.get('GOOGLE_CLIENT_ID', 'your-google-client-id.apps.googleusercontent.com')
-GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', 'your-google-client-secret')
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID', '')
+GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET', '')
 GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
 
 # Create Flask blueprint
@@ -35,7 +35,7 @@ flow = Flow.from_client_config(
 def google_login():
     """Initiate Google OAuth login"""
     # Demo mode - if no Google credentials are set
-    if GOOGLE_CLIENT_ID == 'your-google-client-id.apps.googleusercontent.com':
+    if not GOOGLE_CLIENT_ID or not GOOGLE_CLIENT_SECRET:
         # Create a demo Google user
         demo_user = {
             'id': 'demo_google_user',

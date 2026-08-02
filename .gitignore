@@ -63,7 +63,6 @@ backend/data/wind_forecast.csv
 backend/data/weather_data.csv
 !backend/data/.gitkeep
 !backend/data/system_config.json
-!backend/data/system_config.json
 
 # Test
 .pytest_cache/
@@ -74,6 +73,7 @@ htmlcov/
 node_modules/
 npm-debug.log
 yarn-error.log
+package-lock.json
 
 # Non-functional files (frontend only without backend)
 # These were removed from the project

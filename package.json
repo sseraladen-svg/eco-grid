@@ -5,18 +5,11 @@
   "main": "backend/main.py",
   "scripts": {
     "start": "python backend/main.py",
-    "dev": "python backend/main.py --debug",
+    "dev": "python backend/main.py",
     "test": "python -m pytest tests/",
-    "build": "npm run build:frontend && npm run build:backend",
-    "build:frontend": "npm run build:css && npm run build:js",
-    "build:css": "tailwindcss -i frontend/style.css -o frontend/dist/style.css --minify",
-    "build:js": "webpack --mode production",
-    "lint": "eslint frontend/ && flake8 backend/",
-    "format": "prettier --write frontend/ && black backend/",
-    "deploy": "npm run build && npm run deploy:prod",
-    "deploy:prod": "gunicorn -w 4 -b 0.0.0.0:5000 backend.main:app",
-    "docker:build": "docker build -t ecogrid-ai .",
-    "docker:run": "docker run -p 5000:5000 ecogrid-ai"
+    "lint": "flake8 backend/",
+    "format": "black backend/",
+    "deploy": "gunicorn -w 4 -b 0.0.0.0:5000 backend.main:app"
   },
   "keywords": [
     "renewable-energy",
@@ -39,64 +32,20 @@
     "email": "team@ecogrid-ai.com",
     "url": "https://ecogrid-ai.com"
   },
-  "license": "Enterprise",
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/ecogrid-ai.git"
+    "url": "https://github.com/sseraladen-svg/eco-grid.git"
   },
   "bugs": {
-    "url": "https://github.com/your-org/ecogrid-ai/issues"
+    "url": "https://github.com/sseraladen-svg/eco-grid/issues"
   },
-  "homepage": "https://ecogrid-ai.com",
+  "homepage": "https://github.com/sseraladen-svg/eco-grid",
   "engines": {
-    "node": ">=14.0.0",
     "python": ">=3.8.0"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.22.0",
-    "@babel/preset-env": "^7.22.0",
-    "autoprefixer": "^10.4.0",
-    "eslint": "^8.45.0",
-    "prettier": "^3.0.0",
-    "tailwindcss": "^3.3.0",
-    "webpack": "^5.88.0",
-    "webpack-cli": "^5.1.0"
   },
   "dependencies": {
     "chart.js": "^4.3.0",
     "leaflet": "^1.9.0"
-  },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not dead",
-    "not ie <= 11"
-  ],
-  "config": {
-    "port": 5000,
-    "host": "0.0.0.0",
-    "environment": "production"
-  },
-  "funding": {
-    "type": "enterprise",
-    "url": "https://ecogrid-ai.com/pricing"
-  },
-  "marketing": {
-    "tagline": "AI-Powered Energy Management for the Future",
-    "features": [
-      "Real-time Energy Monitoring",
-      "AI-Powered Forecasting",
-      "Multi-Grid Management",
-      "Enterprise Security",
-      "Advanced Analytics",
-      "Predictive Maintenance"
-    ],
-    "target_audience": [
-      "Energy Companies",
-      "Utility Providers",
-      "Industrial Facilities",
-      "Commercial Buildings",
-      "Solar/Wind Farms"
-    ]
   }
 }

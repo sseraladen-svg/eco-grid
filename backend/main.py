@@ -7,6 +7,10 @@ import random
 import math
 from datetime import datetime, timedelta
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent
 ROOT_DIR = BASE_DIR.parent
@@ -26,8 +30,8 @@ from forecast import register_forecast_routes
 app = Flask(__name__, static_folder=str(FRONTEND_DIR), static_url_path='')
 
 # Database configuration
-app.config['SECRET_KEY'] = 'your-secret-key-change-this-in-production'
-app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_FILE}'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', f'sqlite:///{DB_FILE}')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize database and auth
@@ -736,4 +740,7 @@ register_forecast_routes(app)
 # -----------------------------
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    debug_mode = os.getenv('DEBUG', 'False').lower() == 'true'
+    port = int(os.getenv('PORT', 5000))
+    host = os.getenv('HOST', '0.0.0.0')
+    app.run(debug=debug_mode, host=host, port=port)

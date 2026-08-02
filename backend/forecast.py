@@ -10,12 +10,17 @@ import os
 import sys
 from datetime import datetime, timedelta
 import pandas as pd
+from pathlib import Path
 
 # Add parent directory to path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from training.train_prophet import train_prophet as train_prophet_model
 from models import SystemConfiguration
+
+# Get the correct data directory
+BASE_DIR = Path(__file__).resolve().parent.parent
+DATA_DIR = BASE_DIR / 'backend' / 'data'
 
 # Create Blueprint
 forecast_bp = Blueprint('forecast', __name__, url_prefix='/forecast')
@@ -35,8 +40,8 @@ def get_model_status():
     """Get current Prophet model status"""
     try:
         # Check if trained models exist
-        solar_model_path = "../data/solar_forecast.csv"
-        wind_model_path = "../data/wind_forecast.csv"
+        solar_model_path = DATA_DIR / "solar_forecast.csv"
+        wind_model_path = DATA_DIR / "wind_forecast.csv"
         
         if os.path.exists(solar_model_path) and os.path.exists(wind_model_path):
             # Load model metrics
@@ -94,7 +99,7 @@ def train_model():
             'accuracy': 87.5,  # Simulated accuracy
             'data_points': 100,  # Simulated data points
             'last_updated': datetime.now().isoformat(),
-            'model_path': '../data/solar_forecast.csv'
+            'model_path': str(DATA_DIR / 'solar_forecast.csv')
         })
         
         print("Prophet AI model training completed successfully")
@@ -120,8 +125,8 @@ def generate_forecast():
         print("Generating Prophet AI energy forecast...")
         
         # Check if models exist, train if needed
-        solar_model_path = "../data/solar_forecast.csv"
-        wind_model_path = "../data/wind_forecast.csv"
+        solar_model_path = DATA_DIR / "solar_forecast.csv"
+        wind_model_path = DATA_DIR / "wind_forecast.csv"
         
         if not os.path.exists(solar_model_path) or not os.path.exists(wind_model_path):
             print("No trained models found, training automatically...")
@@ -153,8 +158,8 @@ def generate_prophet_forecast_data():
     """Generate 30-day forecast data using trained Prophet models"""
     try:
         # Read trained forecast data
-        solar_df = pd.read_csv("../data/solar_forecast.csv")
-        wind_df = pd.read_csv("../data/wind_forecast.csv")
+        solar_df = pd.read_csv(DATA_DIR / "solar_forecast.csv")
+        wind_df = pd.read_csv(DATA_DIR / "wind_forecast.csv")
         
         print(f"Using trained models: Solar={len(solar_df)} records, Wind={len(wind_df)} records")
         
