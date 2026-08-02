@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoGrid AI - Advanced Intelligence Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #ffffff;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .ai-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
+        }
+        .ai-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.7);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.6);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: white;
+            box-shadow: 0 4px 20px rgba(34, 197, 94, 0.4);
+        }
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(34, 197, 94, 0.6);
+        }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        .loading-dots {
+            display: inline-flex;
+            gap: 4px;
+        }
+        .loading-dots span {
+            width: 8px;
+            height: 8px;
+            background: #3b82f6;
+            border-radius: 50%;
+            animation: bounce 1.4s ease-in-out infinite both;
+        }
+        .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+        .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0; }
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-5xl font-bold text-white mb-4">EcoGrid AI Platform</h1>
+            <p class="text-xl text-gray-200 mb-2">Advanced Intelligence for Renewable Energy</p>
+            <p class="text-lg text-gray-300">Harness the power of AI for optimal energy management</p>
+        </header>
+
+        <!-- AI Status Overview -->
+        <div class="ai-card p-8 mb-8">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-blue-400 mb-2">
+                        <div class="loading-dots">
+                            <span></span>
+                            <span></span>
+                            <span></span>
+                        </div>
+                    </div>
+                    <p class="text-gray-300">AI Processing</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-green-400 mb-2">98.7%</div>
+                    <p class="text-gray-300">Accuracy</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-purple-400 mb-2">24/7</div>
+                    <p class="text-gray-300">Monitoring</p>
+                </div>
+                <div class="text-center">
+                    <div class="text-4xl font-bold text-yellow-400 mb-2">1.2M</div>
+                    <p class="text-gray-300">Data Points</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- AI Features Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            <!-- Prophet AI -->
+            <div class="ai-card p-8">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-brain text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-2">Prophet AI</h3>
+                        <p class="text-gray-400 text-sm">Time Series Forecasting</p>
+                    </div>
+                </div>
+                <p class="text-gray-300 mb-4">Advanced time series forecasting for energy production and consumption patterns</p>
+                <button class="btn btn-primary w-full" onclick="activateProphet()">
+                    <i class="fas fa-play"></i>
+                    Activate Prophet
+                </button>
+            </div>
+            
+            <!-- SmartHeal AI -->
+            <div class="ai-card p-8">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-heartbeat text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-2">SmartHeal AI</h3>
+                        <p class="text-gray-400 text-sm">Self-Healing System</p>
+                    </div>
+                </div>
+                <p class="text-gray-300 mb-4">Autonomous fault detection and self-healing capabilities for microgrid systems</p>
+                <button class="btn btn-success w-full" onclick="activateSmartHeal()">
+                    <i class="fas fa-shield-alt"></i>
+                    Enable SmartHeal
+                </button>
+            </div>
+            
+            <!-- Optimization AI -->
+            <div class="ai-card p-8">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-network-wired text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-2">ADMM AI</h3>
+                        <p class="text-gray-400 text-sm">Multi-Grid Optimization</p>
+                    </div>
+                </div>
+                <p class="text-gray-300 mb-4">Distributed optimization for multiple microgrid coordination and energy sharing</p>
+                <button class="btn btn-primary w-full" onclick="activateADMM()">
+                    <i class="fas fa-cogs"></i>
+                    Run Optimization
+                </button>
+            </div>
+            
+            <!-- Predictive Analytics -->
+            <div class="ai-card p-8">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-chart-line text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-2">Predictive Analytics</h3>
+                        <p class="text-gray-400 text-sm">Future Insights</p>
+                    </div>
+                </div>
+                <p class="text-gray-300 mb-4">Machine learning models for predicting energy trends and optimization opportunities</p>
+                <button class="btn btn-success w-full" onclick="activatePredictive()">
+                    <i class="fas fa-chart-bar"></i>
+                    Generate Insights
+                </button>
+            </div>
+            
+            <!-- Anomaly Detection -->
+            <div class="ai-card p-8">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-2">Anomaly Detection</h3>
+                        <p class="text-gray-400 text-sm">System Monitoring</p>
+                    </div>
+                </div>
+                <p class="text-gray-300 mb-4">Real-time anomaly detection for system performance and energy efficiency</p>
+                <button class="btn btn-primary w-full" onclick="activateAnomaly()">
+                    <i class="fas fa-search"></i>
+                    Start Monitoring
+                </button>
+            </div>
+            
+            <!-- Neural Networks -->
+            <div class="ai-card p-8">
+                <div class="flex items-center gap-4 mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-project-diagram text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-2">Neural Networks</h3>
+                        <p class="text-gray-400 text-sm">Deep Learning</p>
+                    </div>
+                </div>
+                <p class="text-gray-300 mb-4">Deep neural networks for complex pattern recognition and decision making</p>
+                <button class="btn btn-success w-full" onclick="activateNeural()">
+                    <i class="fas fa-brain"></i>
+                    Initialize Networks
+                </button>
+            </div>
+        </div>
+
+        <!-- AI Performance Chart -->
+        <div class="ai-card p-8 mb-8">
+            <h2 class="text-2xl font-bold text-white mb-6">AI Performance Metrics</h2>
+            <div class="chart-container">
+                <canvas id="performanceChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="text-center">
+            <div class="inline-flex gap-4">
+                <button class="btn btn-primary" onclick="runAllAI()">
+                    <i class="fas fa-play"></i>
+                    Run All AI Systems
+                </button>
+                <button class="btn btn-success" onclick="goToDashboard()">
+                    <i class="fas fa-chart-bar"></i>
+                    View Dashboard
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize performance chart
+        let performanceChart;
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePerformanceChart();
+            startAIAnimation();
+        });
+        
+        function initializePerformanceChart() {
+            const ctx = document.getElementById('performanceChart');
+            if (ctx) {
+                performanceChart = new Chart(ctx.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '24:00'],
+                        datasets: [
+                            {
+                                label: 'Prediction Accuracy',
+                                data: [95, 96, 97, 98, 97, 99, 98],
+                                borderColor: 'rgb(34, 197, 94)',
+                                backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                                tension: 0.4
+                            },
+                            {
+                                label: 'System Efficiency',
+                                data: [88, 90, 92, 94, 93, 95, 94],
+                                borderColor: 'rgb(59, 130, 246)',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Energy Savings',
+                                data: [75, 78, 82, 85, 83, 87, 86],
+                                borderColor: 'rgb(245, 158, 11)',
+                                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: 'white' }
+                            }
+                        },
+                        scales: {
+                            x: { 
+                                ticks: { color: 'white' }, 
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' } 
+                            },
+                            y: { 
+                                ticks: { color: 'white' }, 
+                                grid: { color: 'rgba(255, 255, 255, 0.1)' } 
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        function startAIAnimation() {
+            // Simulate AI processing
+            setInterval(() => {
+                updatePerformanceData();
+            }, 3000);
+        }
+        
+        function updatePerformanceData() {
+            if (!performanceChart) return;
+            
+            // Update with random variations
+            performanceChart.data.datasets.forEach(dataset => {
+                dataset.data = dataset.data.map(value => {
+                    const change = (Math.random() - 0.5) * 2;
+                    return Math.max(70, Math.min(100, value + change));
+                });
+            });
+            
+            performanceChart.update();
+        }
+        
+        function activateProphet() {
+            showNotification('Prophet AI activated successfully!', 'success');
+            setTimeout(() => {
+                window.location.href = '/train_prophet';
+            }, 1000);
+        }
+        
+        function activateSmartHeal() {
+            showNotification('SmartHeal AI enabled!', 'success');
+            setTimeout(() => {
+                window.location.href = 'smartheal.html';
+            }, 1000);
+        }
+        
+        function activateADMM() {
+            showNotification('ADMM optimization started!', 'info');
+            setTimeout(() => {
+                window.location.href = 'multigrid.html';
+            }, 1000);
+        }
+        
+        function activatePredictive() {
+            showNotification('Predictive analytics generating insights!', 'info');
+        }
+        
+        function activateAnomaly() {
+            showNotification('Anomaly detection monitoring started!', 'success');
+        }
+        
+        function activateNeural() {
+            showNotification('Neural networks initialized!', 'success');
+        }
+        
+        function runAllAI() {
+            showNotification('Initializing all AI systems...', 'info');
+            setTimeout(() => {
+                showNotification('All AI systems running optimally!', 'success');
+            }, 2000);
+        }
+        
+        function goToDashboard() {
+            window.location.href = 'dashboard.html';
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg text-white font-semibold z-50 ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'info' ? 'bg-blue-500' : 
+                'bg-gray-500'
+            }`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>EcoGrid AI Dashboard - Simple</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { 
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            min-height: 100vh;
+            color: #f1f5f9;
+        }
+        .card {
+            background: rgba(30, 41, 59, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto p-4">
+        <h1 class="text-4xl font-bold text-center mb-8">EcoGrid AI Dashboard</h1>
+        
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            <div class="card">
+                <h3 class="text-lg font-semibold mb-2">Solar Generation</h3>
+                <p class="text-3xl font-bold text-yellow-400">45.2 kWh</p>
+                <p class="text-sm text-gray-400">Today</p>
+            </div>
+            <div class="card">
+                <h3 class="text-lg font-semibold mb-2">Wind Generation</h3>
+                <p class="text-3xl font-bold text-blue-400">12.8 kWh</p>
+                <p class="text-sm text-gray-400">Today</p>
+            </div>
+            <div class="card">
+                <h3 class="text-lg font-semibold mb-2">Total Generation</h3>
+                <p class="text-3xl font-bold text-green-400">58.0 kWh</p>
+                <p class="text-sm text-gray-400">Today</p>
+            </div>
+            <div class="card">
+                <h3 class="text-lg font-semibold mb-2">Energy Demand</h3>
+                <p class="text-3xl font-bold text-orange-400">52.3 kWh</p>
+                <p class="text-sm text-gray-400">Today</p>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-8">
+            <div class="card">
+                <h3 class="text-xl font-semibold mb-4">Energy Generation</h3>
+                <canvas id="generationChart" width="400" height="200"></canvas>
+            </div>
+            <div class="card">
+                <h3 class="text-xl font-semibold mb-4">Demand vs Supply</h3>
+                <canvas id="demandChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- Data Table -->
+        <div class="card">
+            <h3 class="text-xl font-semibold mb-4">5-Day Forecast</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-gray-600">
+                            <th class="p-2">Date</th>
+                            <th class="p-2">Solar (kWh)</th>
+                            <th class="p-2">Wind (kWh)</th>
+                            <th class="p-2">Total (kWh)</th>
+                            <th class="p-2">Demand (kWh)</th>
+                            <th class="p-2">Surplus</th>
+                        </tr>
+                    </thead>
+                    <tbody id="forecastTableBody">
+                        <tr class="border-b border-gray-700">
+                            <td class="p-2">2024-01-01</td>
+                            <td class="p-2">45.2</td>
+                            <td class="p-2">12.8</td>
+                            <td class="p-2">58.0</td>
+                            <td class="p-2">52.3</td>
+                            <td class="p-2 text-green-400">+5.7</td>
+                        </tr>
+                        <tr class="border-b border-gray-700">
+                            <td class="p-2">2024-01-02</td>
+                            <td class="p-2">38.7</td>
+                            <td class="p-2">15.4</td>
+                            <td class="p-2">54.1</td>
+                            <td class="p-2">48.9</td>
+                            <td class="p-2 text-green-400">+5.2</td>
+                        </tr>
+                        <tr class="border-b border-gray-700">
+                            <td class="p-2">2024-01-03</td>
+                            <td class="p-2">42.1</td>
+                            <td class="p-2">18.2</td>
+                            <td class="p-2">60.3</td>
+                            <td class="p-2">55.7</td>
+                            <td class="p-2 text-green-400">+4.6</td>
+                        </tr>
+                        <tr class="border-b border-gray-700">
+                            <td class="p-2">2024-01-04</td>
+                            <td class="p-2">35.9</td>
+                            <td class="p-2">22.1</td>
+                            <td class="p-2">58.0</td>
+                            <td class="p-2">51.2</td>
+                            <td class="p-2 text-green-400">+6.8</td>
+                        </tr>
+                        <tr class="border-b border-gray-700">
+                            <td class="p-2">2024-01-05</td>
+                            <td class="p-2">40.3</td>
+                            <td class="p-2">19.7</td>
+                            <td class="p-2">60.0</td>
+                            <td class="p-2">53.8</td>
+                            <td class="p-2 text-green-400">+6.2</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample data
+        const forecastData = [
+            { date: '2024-01-01', solar_energy: 45.2, wind_energy: 12.8, total_generation: 58.0, demand: 52.3 },
+            { date: '2024-01-02', solar_energy: 38.7, wind_energy: 15.4, total_generation: 54.1, demand: 48.9 },
+            { date: '2024-01-03', solar_energy: 42.1, wind_energy: 18.2, total_generation: 60.3, demand: 55.7 },
+            { date: '2024-01-04', solar_energy: 35.9, wind_energy: 22.1, total_generation: 58.0, demand: 51.2 },
+            { date: '2024-01-05', solar_energy: 40.3, wind_energy: 19.7, total_generation: 60.0, demand: 53.8 }
+        ];
+
+        // Initialize charts when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard loaded successfully!');
+            
+            // Generation Chart
+            const genCtx = document.getElementById('generationChart').getContext('2d');
+            new Chart(genCtx, {
+                type: 'line',
+                data: {
+                    labels: forecastData.map(d => d.date),
+                    datasets: [{
+                        label: 'Solar Generation',
+                        data: forecastData.map(d => d.solar_energy),
+                        borderColor: 'rgb(255, 205, 86)',
+                        backgroundColor: 'rgba(255, 205, 86, 0.2)',
+                        tension: 0.4
+                    }, {
+                        label: 'Wind Generation',
+                        data: forecastData.map(d => d.wind_energy),
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+
+            // Demand vs Supply Chart
+            const demandCtx = document.getElementById('demandChart').getContext('2d');
+            new Chart(demandCtx, {
+                type: 'line',
+                data: {
+                    labels: forecastData.map(d => d.date),
+                    datasets: [{
+                        label: 'Total Generation',
+                        data: forecastData.map(d => d.total_generation),
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        tension: 0.4
+                    }, {
+                        label: 'Energy Demand',
+                        data: forecastData.map(d => d.demand),
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+
+            console.log('Charts initialized successfully!');
+        });
+    </script>
+</body>
+</html>

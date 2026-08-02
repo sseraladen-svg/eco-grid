@@ -1,0 +1,1223 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Self-Healing Microgrid</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap">
+  <style>
+    * { font-family: 'Plus Jakarta Sans', sans-serif; }
+    html, body { height: 100%; width: 100%; margin: 0; padding: 0; }
+    body { 
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+      color: #f1f5f9;
+      overflow-x: hidden;
+    }
+    
+    #mainContent {
+      overflow-y: auto;
+      width: 100%;
+      padding: 24px;
+      padding-top: 80px;
+    }
+
+    .premium-card {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.6) 100%);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      padding: 24px;
+    }
+
+    .premium-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .premium-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 30px 80px rgba(59, 130, 246, 0.2);
+      border-color: rgba(148, 163, 184, 0.4);
+    }
+
+    .premium-card:hover::before {
+      opacity: 1;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+      box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 15px 40px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: rgba(148, 163, 184, 0.1);
+      color: #f1f5f9;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    .grid-node {
+      width: 80px;
+      height: 80px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      border: 2px solid;
+    }
+
+    .grid-node.normal {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.1) 100%);
+      border-color: #22c55e;
+      box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+    }
+
+    .grid-node.faulty {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(239, 68, 68, 0.1) 100%);
+      border-color: #ef4444;
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.5);
+      animation: pulse-fault 0.6s infinite;
+    }
+
+    .grid-node.isolated {
+      background: linear-gradient(135deg, rgba(234, 179, 8, 0.2) 0%, rgba(234, 179, 8, 0.1) 100%);
+      border-color: #eab308;
+      box-shadow: 0 0 20px rgba(234, 179, 8, 0.3);
+    }
+
+    .grid-node.recovering {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%);
+      border-color: #3b82f6;
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+      animation: pulse-recovery 0.8s infinite;
+    }
+
+    @keyframes pulse-fault {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @keyframes pulse-recovery {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 1; }
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+      width: 100%;
+    }
+
+    .alert {
+      padding: 16px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .alert-success {
+      background: rgba(34, 197, 94, 0.1);
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      color: #86efac;
+    }
+
+    .alert-warning {
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      color: #fde047;
+    }
+
+    .alert-danger {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+
+    .fault-item {
+      background: rgba(239, 68, 68, 0.05);
+      border-left: 4px solid #ef4444;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      animation: slideIn 0.3s ease;
+    }
+
+    .recovery-item {
+      background: rgba(34, 197, 94, 0.05);
+      border-left: 4px solid #22c55e;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      animation: slideIn 0.3s ease;
+    }
+
+    .section-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 8px;
+    }
+
+    .node-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-top: 4px;
+    }
+
+    .node-status {
+      font-size: 10px;
+      color: #94a3b8;
+    }
+
+    .info-badge {
+      display: inline-block;
+      background: rgba(59, 130, 246, 0.2);
+      border: 1px solid rgba(59, 130, 246, 0.5);
+      color: #60a5fa;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .parameter-input {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 8px;
+      padding: 10px 12px;
+      color: #f1f5f9;
+      font-size: 14px;
+    }
+
+    .parameter-input:focus {
+      outline: none;
+      border-color: rgba(59, 130, 246, 0.5);
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
+    }
+
+    .toggle-switch {
+      width: 50px;
+      height: 28px;
+      background: rgba(148, 163, 184, 0.2);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      position: relative;
+    }
+
+    .toggle-switch.active {
+      background: rgba(34, 197, 94, 0.3);
+      border-color: #22c55e;
+    }
+
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      background: #94a3b8;
+      border-radius: 12px;
+      top: 2px;
+      left: 2px;
+      transition: all 0.3s ease;
+    }
+
+    .toggle-switch.active::after {
+      left: 24px;
+      background: #22c55e;
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+
+    .metric-box {
+      background: rgba(30, 41, 59, 0.4);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .metric-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #60a5fa;
+      margin: 8px 0;
+    }
+
+    .metric-label {
+      font-size: 18px;
+      color: #94a3b8;
+    }
+
+    /* Navigation Menu Styles */
+    .menu-button {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .menu-button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.05);
+    }
+    
+    .side-dashboard {
+      position: fixed;
+      top: 0;
+      left: -400px;
+      width: 400px;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
+      transition: left 0.3s ease;
+      z-index: 999;
+      overflow-y: auto;
+    }
+    
+    .side-dashboard.open {
+      left: 0;
+    }
+    
+    .side-dashboard-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .close-menu {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: #ffffff;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .close-menu:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.05);
+    }
+    
+    .menu-item {
+      padding: 15px 20px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #ffffff;
+    }
+    
+    .menu-item:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-left: 3px solid #ffffff;
+    }
+    
+    .menu-item.active {
+      background: rgba(255, 255, 255, 0.2);
+      border-left: 3px solid #ffffff;
+    }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17" type="text/javascript"></script>
+ </head>
+ <body>
+  <!-- Menu Button -->
+  <button class="menu-button" onclick="toggleMenu()">
+    <i class="fas fa-bars text-white"></i>
+  </button>
+  
+  <!-- Side Dashboard -->
+  <div id="sideDashboard" class="side-dashboard">
+    <div class="side-dashboard-header">
+      <h2 class="text-xl font-bold text-white">⚡ EcoGrid AI</h2>
+      <button class="close-menu" onclick="toggleMenu()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    
+    <div class="menu-item" onclick="window.location.href='dashboard.html'">
+      <i class="fas fa-dashboard"></i>
+      <span>Overview</span>
+    </div>
+    
+    <div class="menu-item" onclick="window.location.href='dashboard.html#forecast'">
+      <i class="fas fa-chart-line"></i>
+      <span>Forecast</span>
+    </div>
+    
+    <div class="menu-item" onclick="window.location.href='dashboard.html#chatbot'">
+      <i class="fas fa-comments"></i>
+      <span>ChatBot</span>
+    </div>
+    
+    <div class="menu-item active" onclick="window.location.href='smartheal.html'">
+      <i class="fas fa-heartbeat"></i>
+      <span>SmartHeal</span>
+    </div>
+    
+    <div class="menu-item" onclick="window.location.href='multigrid.html'">
+      <i class="fas fa-th"></i>
+      <span>MultiGrid</span>
+    </div>
+  </div>
+  
+  <div id="mainContent"><!-- Header -->
+   <header class="mb-8">
+    <div class="flex justify-between items-center mb-4">
+     <div>
+      <h1 class="section-title">⚡ Smart Self-Healing Microgrid</h1>
+      <p class="text-gray-400">AI-powered fault detection and automatic load redistribution</p>
+     </div>
+     <div class="flex gap-3"><button class="btn btn-secondary" onclick="showInfo()"> <i class="fas fa-info-circle"></i> How it Works </button> <button class="btn btn-primary" onclick="startSimulation()"> <i class="fas fa-play"></i> Start Simulation </button>
+     </div>
+    </div>
+   </header><!-- Alerts -->
+   <div id="alertContainer"></div><!-- System Status Overview -->
+   <section class="mb-8">
+    <div class="metric-grid">
+     <div class="metric-box">
+      <div class="metric-label">
+       System Status
+      </div>
+      <div class="metric-value" id="statusIndicator">
+       🟢 Healthy
+      </div>
+      <div class="text-xs text-gray-500">
+       All nodes operational
+      </div>
+     </div>
+     <div class="metric-box">
+      <div class="metric-label">
+       Active Nodes
+      </div>
+      <div class="metric-value" id="activeNodes">
+       0/0
+      </div>
+      <div class="text-xs text-gray-500">
+       Operational capacity
+      </div>
+     </div>
+     <div class="metric-box">
+      <div class="metric-label">
+       Faults Detected
+      </div>
+      <div class="metric-value" id="faultsDetected">
+       0
+      </div>
+      <div class="text-xs text-gray-500">
+       This session
+      </div>
+     </div>
+     <div class="metric-box">
+      <div class="metric-label">
+       Recovery Rate
+      </div>
+      <div class="metric-value" id="recoveryRate">
+       0%
+      </div>
+      <div class="text-xs text-gray-500">
+       Success percentage
+      </div>
+     </div>
+    </div>
+   </section><!-- Simulation Controls -->
+   <section class="mb-8">
+    <div class="premium-card">
+     <h2 class="text-xl font-semibold text-white mb-6">⚙️ Simulation Parameters</h2>
+     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div><label class="block text-sm text-gray-400 mb-2">Weather Condition</label> <select id="weatherSelect" class="parameter-input w-full"> <option value="sunny">☀️ Sunny</option> <option value="cloudy">⛅ Cloudy</option> <option value="windy">💨 Windy</option> <option value="stormy">⛈️ Stormy</option> <option value="night">🌙 Night</option> </select>
+      </div>
+      <div><label class="block text-sm text-gray-400 mb-2">Load Demand</label> <select id="demandSelect" class="parameter-input w-full"> <option value="low">Low (30%)</option> <option value="medium" selected>Medium (60%)</option> <option value="high">High (90%)</option> <option value="peak">Peak (100%)</option> </select>
+      </div>
+      <div><label class="block text-sm text-gray-400 mb-2">Fault Injection</label> <select id="faultSelect" class="parameter-input w-full"> <option value="none">None</option> <option value="node">Node Failure</option> <option value="overload">Overload</option> <option value="voltage">Voltage Drop</option> <option value="cascade">Cascade Failure</option> </select>
+      </div>
+      <div><label class="block text-sm text-gray-400 mb-2">Speed</label> <select id="speedSelect" class="parameter-input w-full"> <option value="slow">Slow</option> <option value="normal" selected>Normal</option> <option value="fast">Fast</option> <option value="ultra">Ultra</option> </select>
+      </div>
+     </div>
+     <div class="flex gap-4 flex-wrap"><button class="btn btn-primary" onclick="injectFault()"> <i class="fas fa-bolt"></i> Inject Fault </button> <button class="btn btn-secondary" onclick="resetSimulation()"> <i class="fas fa-redo"></i> Reset System </button> <label class="flex items-center gap-2 cursor-pointer text-sm text-gray-400"> <input type="checkbox" id="autoFaultToggle" class="w-4 h-4"> Auto-inject faults </label>
+     </div>
+    </div>
+   </section><!-- Grid Topology Visualization -->
+   <section class="mb-8">
+    <div class="premium-card">
+     <h2 class="text-xl font-semibold text-white mb-6">🔌 Live Grid Topology</h2>
+     <p class="text-sm text-gray-400 mb-6">Interactive visualization of microgrid nodes and connections</p>
+     <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-8"><!-- Solar Source -->
+      <div class="flex flex-col items-center">
+       <div class="grid-node normal" id="solarNode" onclick="showNodeDetails('solar')"><span style="font-size: 24px;">☀️</span>
+        <div class="node-status" id="solarOutput">
+         800W
+        </div>
+       </div>
+       <div class="node-label">
+        Solar Array
+       </div>
+       <div class="text-xs text-gray-500 mt-2">
+        PV1, PV2
+       </div>
+      </div><!-- Wind Source -->
+      <div class="flex flex-col items-center">
+       <div class="grid-node normal" id="windNode" onclick="showNodeDetails('wind')"><span style="font-size: 24px;">💨</span>
+        <div class="node-status" id="windOutput">
+         600W
+        </div>
+       </div>
+       <div class="node-label">
+        Wind Turbine
+       </div>
+       <div class="text-xs text-gray-500 mt-2">
+        WT1
+       </div>
+      </div><!-- Battery Storage -->
+      <div class="flex flex-col items-center">
+       <div class="grid-node normal" id="batteryNode" onclick="showNodeDetails('battery')"><span style="font-size: 24px;">🔋</span>
+        <div class="node-status" id="batterySoC">
+         75%
+        </div>
+       </div>
+       <div class="node-label">
+        Battery Bank
+       </div>
+       <div class="text-xs text-gray-500 mt-2">
+        BESS1
+       </div>
+      </div><!-- Grid Connection -->
+      <div class="flex flex-col items-center">
+       <div class="grid-node normal" id="gridNode" onclick="showNodeDetails('grid')"><span style="font-size: 24px;">📡</span>
+        <div class="node-status" id="gridStatus">
+         Connected
+        </div>
+       </div>
+       <div class="node-label">
+        Main Grid
+       </div>
+       <div class="text-xs text-gray-500 mt-2">
+        Backup
+       </div>
+      </div>
+     </div><!-- Load Nodes -->
+     <div class="mb-8">
+      <h3 class="text-sm font-semibold text-gray-300 mb-4">Critical &amp; Non-Critical Loads</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+       <div class="flex flex-col items-center">
+        <div class="grid-node normal" id="load1Node" onclick="showNodeDetails('load1')"><span style="font-size: 20px;">🏥</span>
+         <div class="node-status" id="load1Power">
+          250W
+         </div>
+        </div>
+        <div class="node-label">
+         Hospital
+        </div><span class="info-badge mt-2">Critical</span>
+       </div>
+       <div class="flex flex-col items-center">
+        <div class="grid-node normal" id="load2Node" onclick="showNodeDetails('load2')"><span style="font-size: 20px;">🏢</span>
+         <div class="node-status" id="load2Power">
+          300W
+         </div>
+        </div>
+        <div class="node-label">
+         Office
+        </div><span class="info-badge mt-2">Important</span>
+       </div>
+       <div class="flex flex-col items-center">
+        <div class="grid-node normal" id="load3Node" onclick="showNodeDetails('load3')"><span style="font-size: 20px;">🏭</span>
+         <div class="node-status" id="load3Power">
+          400W
+         </div>
+        </div>
+        <div class="node-label">
+         Factory
+        </div><span class="info-badge mt-2">Flexible</span>
+       </div>
+       <div class="flex flex-col items-center">
+        <div class="grid-node normal" id="load4Node" onclick="showNodeDetails('load4')"><span style="font-size: 20px;">🏘️</span>
+         <div class="node-status" id="load4Power">
+          350W
+         </div>
+        </div>
+        <div class="node-label">
+         Residential
+        </div><span class="info-badge mt-2">Flexible</span>
+       </div>
+      </div>
+     </div>
+    </div>
+   </section><!-- Real-Time Monitoring -->
+   <section class="mb-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6"><!-- Power Flow Chart -->
+     <div class="premium-card">
+      <h2 class="text-lg font-semibold text-white mb-4">📊 Power Flow &amp; Generation</h2>
+      <div class="chart-container">
+       <canvas id="powerChart"></canvas>
+      </div>
+     </div><!-- Voltage & Frequency -->
+     <div class="premium-card">
+      <h2 class="text-lg font-semibold text-white mb-4">⚡ Grid Quality Metrics</h2>
+      <div class="chart-container">
+       <canvas id="qualityChart"></canvas>
+      </div>
+     </div>
+    </div>
+   </section><!-- Fault Detection Log -->
+   <section class="mb-8">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6"><!-- Active Faults -->
+     <div class="premium-card">
+      <h2 class="text-lg font-semibold text-white mb-4">🚨 Active Faults</h2>
+      <div id="activeFaultsList" class="max-h-64 overflow-y-auto">
+       <p class="text-gray-500 text-sm">No faults detected. System healthy.</p>
+      </div>
+     </div><!-- Recovery Actions -->
+     <div class="premium-card">
+      <h2 class="text-lg font-semibold text-white mb-4">✅ Recovery Actions</h2>
+      <div id="recoveryActionsList" class="max-h-64 overflow-y-auto">
+       <p class="text-gray-500 text-sm">No actions taken yet.</p>
+      </div>
+     </div>
+    </div>
+   </section><!-- System Statistics -->
+   <section class="mb-8">
+    <div class="premium-card">
+     <h2 class="text-xl font-semibold text-white mb-6">📈 Session Statistics</h2>
+     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="bg-green-500/10 border border-green-500/30 rounded-lg p-4">
+       <div class="text-sm text-gray-400 mb-2">
+        Uptime
+       </div>
+       <div class="text-2xl font-bold text-green-400" id="systemUptime">
+        100%
+       </div>
+       <div class="text-xs text-gray-500 mt-2">
+        Average availability
+       </div>
+      </div>
+      <div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
+       <div class="text-sm text-gray-400 mb-2">
+        Cost Savings
+       </div>
+       <div class="text-2xl font-bold text-blue-400" id="costSavings">
+        ₹0
+       </div>
+       <div class="text-xs text-gray-500 mt-2">
+        vs. grid-only scenario
+       </div>
+      </div>
+      <div class="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4">
+       <div class="text-sm text-gray-400 mb-2">
+        Avg Response Time
+       </div>
+       <div class="text-2xl font-bold text-purple-400" id="responseTime">
+        0 ms
+       </div>
+       <div class="text-xs text-gray-500 mt-2">
+        Fault detection &amp; isolation
+       </div>
+      </div>
+     </div>
+    </div>
+   </section><!-- Architecture & Documentation Modal -->
+   <div id="infoModal" style="display: none;" class="fixed inset-0 bg-black/80 flex items-center justify-center z-1000 p-4" onclick="closeInfo()">
+    <div class="premium-card max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
+     <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-white">System Architecture &amp; How It Works</h2><button onclick="closeInfo()" class="text-gray-400 hover:text-white text-2xl">×</button>
+     </div>
+     <div class="space-y-6 text-gray-300">
+      <div>
+       <h3 class="text-lg font-semibold text-white mb-3">🔄 How the Self-Healing System Works</h3>
+       <ol class="list-decimal list-inside space-y-2 text-sm">
+        <li><strong>Continuous Monitoring:</strong> Simulated sensors (voltage, current, power) track all nodes every 100ms</li>
+        <li><strong>Fault Detection:</strong> AI algorithms detect anomalies using threshold-based &amp; pattern recognition</li>
+        <li><strong>Fault Isolation:</strong> Faulty node is immediately disconnected to prevent cascading failures</li>
+        <li><strong>Load Redistribution:</strong> Power is automatically rerouted through healthy paths</li>
+        <li><strong>Priority Handling:</strong> Critical loads (hospitals) get priority over flexible loads</li>
+        <li><strong>Self-Recovery:</strong> Once fault is resolved, node reconnects and reintegrates into the grid</li>
+       </ol>
+      </div>
+      <div class="border-t border-gray-600 pt-6">
+       <h3 class="text-lg font-semibold text-white mb-3">🧠 Fault Detection Algorithms</h3>
+       <div class="bg-gray-900/50 rounded-lg p-4 text-xs font-mono space-y-2">
+        <div>
+         <span class="text-yellow-400">1. Threshold Detection:</span> If V &lt; 380V or V &gt; 420V → Voltage Fault
+        </div>
+        <div>
+         <span class="text-yellow-400">2. Rate of Change:</span> dV/dt &gt; 20V/s → Rapid Fault
+        </div>
+        <div>
+         <span class="text-yellow-400">3. Power Balance:</span> |Gen - Load| &gt; Threshold → Imbalance
+        </div>
+        <div>
+         <span class="text-yellow-400">4. Harmonic Analysis:</span> THD &gt; 5% → Distortion
+        </div>
+        <div>
+         <span class="text-yellow-400">5. Pattern Matching:</span> Historical patterns + ML classification
+        </div>
+       </div>
+      </div>
+      <div class="border-t border-gray-600 pt-6">
+       <h3 class="text-lg font-semibold text-white mb-3">📊 Load Redistribution Logic</h3>
+       <div class="bg-gray-900/50 rounded-lg p-4 text-xs space-y-2">
+        <p><strong class="text-green-400">Priority Queue:</strong></p>
+        <p class="ml-4">1. Critical (Hospitals, Emergency) - 100% supply</p>
+        <p class="ml-4">2. Important (Office, Infrastructure) - 80% supply</p>
+        <p class="ml-4">3. Flexible (Factory, Residential) - 50% supply</p>
+        <p class="mt-3"><strong class="text-blue-400">Energy Source Priority:</strong></p>
+        <p class="ml-4">1. Local renewable (Solar + Wind)</p>
+        <p class="ml-4">2. Battery storage (if SoC &gt; 20%)</p>
+        <p class="ml-4">3. Grid connection (fallback)</p>
+       </div>
+      </div>
+      <div class="border-t border-gray-600 pt-6">
+       <h3 class="text-lg font-semibold text-white mb-3">⚙️ System Components</h3>
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+        <div class="bg-blue-900/20 rounded-lg p-3 border border-blue-500/30">
+         <p class="font-semibold text-blue-400">Data Simulator</p>
+         <p class="text-xs mt-2">Generates realistic sensor data for voltage, current, power, frequency with weather effects</p>
+        </div>
+        <div class="bg-red-900/20 rounded-lg p-3 border border-red-500/30">
+         <p class="font-semibold text-red-400">Fault Detector</p>
+         <p class="text-xs mt-2">Analyzes real-time data using ML/AI to identify faults with &lt;100ms latency</p>
+        </div>
+        <div class="bg-green-900/20 rounded-lg p-3 border border-green-500/30">
+         <p class="font-semibold text-green-400">Recovery Engine</p>
+         <p class="text-xs mt-2">Automatically isolates faults and reroutes power maintaining system stability</p>
+        </div>
+        <div class="bg-purple-900/20 rounded-lg p-3 border border-purple-500/30">
+         <p class="font-semibold text-purple-400">Digital Twin</p>
+         <p class="text-xs mt-2">Simulates grid scenarios offline to test recovery strategies before deployment</p>
+        </div>
+       </div>
+      </div>
+      <div class="border-t border-gray-600 pt-6">
+       <h3 class="text-lg font-semibold text-white mb-3">✅ Advantages Over Traditional Grids</h3>
+       <ul class="space-y-2 text-sm">
+        <li>✓ <strong>Self-Healing:</strong> Automatic fault isolation without human intervention</li>
+        <li>✓ <strong>Resilience:</strong> Continues operation even with node failures (islanding capability)</li>
+        <li>✓ <strong>Cost Reduction:</strong> 20-40% lower operational costs by optimizing renewable usage</li>
+        <li>✓ <strong>Faster Response:</strong> Sub-100ms fault response vs. seconds in traditional grids</li>
+        <li>✓ <strong>Sustainability:</strong> Prioritizes renewable energy with battery buffering</li>
+        <li>✓ <strong>Smart Priority:</strong> Guarantees power to critical loads during stress</li>
+       </ul>
+      </div>
+      <div class="border-t border-gray-600 pt-6">
+       <h3 class="text-lg font-semibold text-white mb-3">⚠️ Limitations of Software-Only Implementation</h3>
+       <ul class="space-y-2 text-sm">
+        <li>⚠️ <strong>No Physical Sensors:</strong> Cannot detect actual hardware failures - relies on simulated data</li>
+        <li>⚠️ <strong>Communication Delay:</strong> Real systems have network latency; simulation assumes instant</li>
+        <li>⚠️ <strong>Protection Equipment:</strong> Requires physical relays/switches to actually isolate faults</li>
+        <li>⚠️ <strong>Accuracy:</strong> Model accuracy depends on quality of simulated data generation</li>
+        <li>⚠️ <strong>Edge Cases:</strong> Rare scenarios (cascading failures) difficult to validate</li>
+        <li>⚠️ <strong>Cyber Security:</strong> Software vulnerabilities could compromise the entire system</li>
+       </ul>
+      </div>
+      <div class="border-t border-gray-600 pt-6">
+       <h3 class="text-lg font-semibold text-white mb-3">🏗️ MERN Stack Implementation</h3>
+       <div class="bg-gray-900/50 rounded-lg p-4 text-xs space-y-3">
+        <p><strong class="text-blue-400">Frontend (React):</strong> Real-time dashboard, visualization, controls</p>
+        <p><strong class="text-green-400">Backend (Node.js/Express):</strong> API, fault detection algorithms, data management</p>
+        <p><strong class="text-yellow-400">Database (MongoDB):</strong> Store historical data, fault logs, recovery events</p>
+        <p><strong class="text-purple-400">Real-time (Socket.io):</strong> Live updates, streaming sensor data</p>
+        <p><strong class="text-pink-400">Analytics:</strong> Time-series analysis, ML models for prediction</p>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+    // Global state
+    let simulationRunning = false;
+    let simulationSpeed = 1;
+    let gridState = {
+      nodes: {
+        solar: { status: 'normal', power: 800, voltage: 410, frequency: 50 },
+        wind: { status: 'normal', power: 600, voltage: 410, frequency: 50 },
+        battery: { status: 'normal', power: 0, soc: 75, voltage: 410 },
+        grid: { status: 'normal', power: 0, voltage: 410 },
+        load1: { status: 'normal', power: 250, priority: 'critical' },
+        load2: { status: 'normal', power: 300, priority: 'important' },
+        load3: { status: 'normal', power: 400, priority: 'flexible' },
+        load4: { status: 'normal', power: 350, priority: 'flexible' }
+      },
+      faultsDetected: 0,
+      faultsRecovered: 0,
+      sessionStartTime: null,
+      totalEnergy: 0
+    };
+
+    let charts = {};
+    let dataHistory = [];
+    const MAX_HISTORY = 60;
+
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', function() {
+      initializeCharts();
+      updateUIMetrics();
+      gridState.sessionStartTime = Date.now();
+    });
+
+    // Initialize Charts
+    function initializeCharts() {
+      const powerCtx = document.getElementById('powerChart');
+      if (powerCtx) {
+        charts.power = new Chart(powerCtx.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: [],
+            datasets: [
+              {
+                label: 'Solar',
+                data: [],
+                borderColor: '#fbbf24',
+                backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                tension: 0.4,
+                borderWidth: 2,
+                fill: true
+              },
+              {
+                label: 'Wind',
+                data: [],
+                borderColor: '#38bdf8',
+                backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                tension: 0.4,
+                borderWidth: 2,
+                fill: true
+              },
+              {
+                label: 'Total Load',
+                data: [],
+                borderColor: '#ef4444',
+                borderWidth: 2,
+                borderDash: [5, 5]
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { labels: { color: '#cbd5e1' } }
+            },
+            scales: {
+              y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148, 163, 184, 0.1)' } },
+              x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148, 163, 184, 0.1)' } }
+            }
+          }
+        });
+      }
+
+      const qualityCtx = document.getElementById('qualityChart');
+      if (qualityCtx) {
+        charts.quality = new Chart(qualityCtx.getContext('2d'), {
+          type: 'line',
+          data: {
+            labels: [],
+            datasets: [
+              {
+                label: 'Voltage (V)',
+                data: [],
+                borderColor: '#a78bfa',
+                backgroundColor: 'rgba(167, 139, 250, 0.1)',
+                yAxisID: 'y',
+                tension: 0.4,
+                borderWidth: 2
+              },
+              {
+                label: 'Frequency (Hz)',
+                data: [],
+                borderColor: '#34d399',
+                yAxisID: 'y1',
+                tension: 0.4,
+                borderWidth: 2
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: { legend: { labels: { color: '#cbd5e1' } } },
+            scales: {
+              y: { position: 'left', ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148, 163, 184, 0.1)' } },
+              y1: { position: 'right', ticks: { color: '#94a3b8' }, grid: { display: false } }
+            },
+            x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148, 163, 184, 0.1)' } }
+          }
+        });
+      }
+    }
+
+    // Start Simulation
+    function startSimulation() {
+      if (simulationRunning) return;
+      simulationRunning = true;
+
+      const speedMap = {
+        slow: 500,
+        normal: 250,
+        fast: 100,
+        ultra: 30
+      };
+      simulationSpeed = speedMap[document.getElementById('speedSelect').value] || 250;
+
+      showAlert('🚀 Simulation started...', 'success');
+      simulateGrid();
+    }
+
+    // Simulate Grid
+    function simulateGrid() {
+      if (!simulationRunning) return;
+
+      const weather = document.getElementById('weatherSelect').value;
+      const demand = document.getElementById('demandSelect').value;
+
+      // Simulate environmental conditions
+      let solarGen = getSolarGeneration(weather);
+      let windGen = getWindGeneration(weather);
+      let totalLoad = getTotalLoad(demand);
+
+      // Update node states
+      gridState.nodes.solar.power = solarGen;
+      gridState.nodes.wind.power = windGen;
+      gridState.nodes.load1.power = totalLoad * 0.25;
+      gridState.nodes.load2.power = totalLoad * 0.30;
+      gridState.nodes.load3.power = totalLoad * 0.40;
+      gridState.nodes.load4.power = totalLoad * 0.35;
+
+      // Update battery
+      const renewable = solarGen + windGen;
+      const totalLoadPower = totalLoad;
+      if (renewable > totalLoadPower && gridState.nodes.battery.soc < 100) {
+        gridState.nodes.battery.soc = Math.min(100, gridState.nodes.battery.soc + 0.5);
+        gridState.nodes.battery.power = -Math.min(renewable - totalLoadPower, 200);
+      } else if (renewable < totalLoadPower && gridState.nodes.battery.soc > 20) {
+        gridState.nodes.battery.soc = Math.max(20, gridState.nodes.battery.soc - 0.5);
+        gridState.nodes.battery.power = Math.min(totalLoadPower - renewable, 300);
+      }
+
+      // Add voltage variations
+      gridState.nodes.solar.voltage = 410 + Math.random() * 10 - 5;
+      gridState.nodes.wind.voltage = 410 + Math.random() * 10 - 5;
+
+      updateUIMetrics();
+      updateCharts();
+
+      setTimeout(simulateGrid, simulationSpeed);
+    }
+
+    function getSolarGeneration(weather) {
+      const baseGen = 800;
+      switch(weather) {
+        case 'sunny': return baseGen * (0.9 + Math.random() * 0.1);
+        case 'cloudy': return baseGen * (0.4 + Math.random() * 0.3);
+        case 'stormy': return baseGen * (0.1 + Math.random() * 0.1);
+        case 'night': return 0;
+        default: return baseGen * 0.5;
+      }
+    }
+
+    function getWindGeneration(weather) {
+      const baseGen = 600;
+      switch(weather) {
+        case 'windy': return baseGen * (0.85 + Math.random() * 0.15);
+        case 'stormy': return baseGen * (0.8 + Math.random() * 0.2);
+        case 'sunny': return baseGen * (0.3 + Math.random() * 0.2);
+        case 'night': return baseGen * (0.5 + Math.random() * 0.3);
+        default: return baseGen * 0.5;
+      }
+    }
+
+    function getTotalLoad(demand) {
+      switch(demand) {
+        case 'low': return 400;
+        case 'medium': return 900;
+        case 'high': return 1200;
+        case 'peak': return 1300;
+        default: return 900;
+      }
+    }
+
+    function updateCharts() {
+      const timestamp = new Date().toLocaleTimeString();
+      const solarPower = gridState.nodes.solar.power;
+      const windPower = gridState.nodes.wind.power;
+      const totalLoad = gridState.nodes.load1.power + gridState.nodes.load2.power + 
+                       gridState.nodes.load3.power + gridState.nodes.load4.power;
+
+      if (charts.power) {
+        charts.power.data.labels.push(timestamp);
+        charts.power.data.datasets[0].data.push(solarPower);
+        charts.power.data.datasets[1].data.push(windPower);
+        charts.power.data.datasets[2].data.push(totalLoad);
+
+        if (charts.power.data.labels.length > MAX_HISTORY) {
+          charts.power.data.labels.shift();
+          charts.power.data.datasets.forEach(ds => ds.data.shift());
+        }
+        charts.power.update('none');
+      }
+
+      if (charts.quality) {
+        const avgVoltage = (gridState.nodes.solar.voltage + gridState.nodes.wind.voltage) / 2;
+        charts.quality.data.labels.push(timestamp);
+        charts.quality.data.datasets[0].data.push(avgVoltage);
+        charts.quality.data.datasets[1].data.push(49.9 + Math.random() * 0.2);
+
+        if (charts.quality.data.labels.length > MAX_HISTORY) {
+          charts.quality.data.labels.shift();
+          charts.quality.data.datasets.forEach(ds => ds.data.shift());
+        }
+        charts.quality.update('none');
+      }
+
+      // Update HTML values
+      document.getElementById('solarOutput').textContent = `${solarPower.toFixed(0)}W`;
+      document.getElementById('windOutput').textContent = `${windPower.toFixed(0)}W`;
+      document.getElementById('batterySoC').textContent = `${gridState.nodes.battery.soc.toFixed(0)}%`;
+      document.getElementById('load1Power').textContent = `${gridState.nodes.load1.power.toFixed(0)}W`;
+      document.getElementById('load2Power').textContent = `${gridState.nodes.load2.power.toFixed(0)}W`;
+      document.getElementById('load3Power').textContent = `${gridState.nodes.load3.power.toFixed(0)}W`;
+      document.getElementById('load4Power').textContent = `${gridState.nodes.load4.power.toFixed(0)}W`;
+    }
+
+    function updateUIMetrics() {
+      const activeNodes = Object.values(gridState.nodes).filter(n => n.status !== 'faulty').length;
+      const totalNodes = Object.keys(gridState.nodes).length;
+
+      document.getElementById('activeNodes').textContent = `${activeNodes}/${totalNodes}`;
+      document.getElementById('faultsDetected').textContent = gridState.faultsDetected;
+
+      const recoveryRate = gridState.faultsDetected > 0 
+        ? ((gridState.faultsRecovered / gridState.faultsDetected) * 100).toFixed(1)
+        : 0;
+      document.getElementById('recoveryRate').textContent = `${recoveryRate}%`;
+
+      const status = activeNodes === totalNodes ? '🟢 Healthy' : activeNodes >= totalNodes - 1 ? '🟡 Degraded' : '🔴 Critical';
+      document.getElementById('statusIndicator').textContent = status;
+
+      const uptime = gridState.faultsDetected > 0 ? 95 : 100;
+      document.getElementById('systemUptime').textContent = `${uptime}%`;
+
+      const renewable = gridState.nodes.solar.power + gridState.nodes.wind.power;
+      const costSavings = Math.round((renewable / 1400) * 8000);
+      document.getElementById('costSavings').textContent = `₹${costSavings}`;
+    }
+
+    // Fault Injection
+    function injectFault() {
+      const faultType = document.getElementById('faultSelect').value;
+      if (faultType === 'none') return;
+
+      const nodeKeys = ['solar', 'wind', 'battery', 'load1', 'load2', 'load3', 'load4'];
+      const targetNode = nodeKeys[Math.floor(Math.random() * nodeKeys.length)];
+
+      simulateFault(targetNode, faultType);
+    }
+
+    function simulateFault(nodeId, faultType) {
+      gridState.nodes[nodeId].status = 'faulty';
+      gridState.faultsDetected++;
+
+      const nodeElement = document.getElementById(nodeId + 'Node');
+      if (nodeElement) {
+        nodeElement.classList.remove('normal');
+        nodeElement.classList.add('faulty');
+      }
+
+      const faultDescriptions = {
+        'node': `Node ${nodeId.toUpperCase()} - Hardware Failure`,
+        'overload': `Node ${nodeId.toUpperCase()} - Overload Condition (125% of rated)`,
+        'voltage': `Node ${nodeId.toUpperCase()} - Voltage Drop (35V below nominal)`,
+        'cascade': `Cascade Failure initiated at ${nodeId.toUpperCase()}`
+      };
+
+      addFaultLog(faultDescriptions[faultType], 'fault');
+      showAlert(`🚨 Fault injected: ${faultDescriptions[faultType]}`, 'danger');
+
+      // Simulate auto-recovery
+      setTimeout(() => {
+        if (gridState.nodes[nodeId]) {
+          gridState.nodes[nodeId].status = 'recovering';
+          const nodeElement = document.getElementById(nodeId + 'Node');
+          if (nodeElement) {
+            nodeElement.classList.remove('faulty');
+            nodeElement.classList.add('recovering');
+          }
+          addFaultLog(`Node ${nodeId.toUpperCase()} - Recovering...`, 'recovery');
+        }
+      }, 2000);
+
+      setTimeout(() => {
+        if (gridState.nodes[nodeId]) {
+          gridState.nodes[nodeId].status = 'normal';
+          gridState.faultsRecovered++;
+          const nodeElement = document.getElementById(nodeId + 'Node');
+          if (nodeElement) {
+            nodeElement.classList.remove('recovering');
+            nodeElement.classList.add('normal');
+          }
+          addFaultLog(`Node ${nodeId.toUpperCase()} - Recovered & Reconnected`, 'recovery');
+          showAlert(`✅ ${nodeId.toUpperCase()} recovered successfully!`, 'success');
+        }
+      }, 4000);
+    }
+
+    function addFaultLog(message, type) {
+      const container = type === 'fault' ? 
+        document.getElementById('activeFaultsList') : 
+        document.getElementById('recoveryActionsList');
+
+      if (container.querySelector('p:not(.fault-item):not(.recovery-item)')) {
+        container.innerHTML = '';
+      }
+
+      const item = document.createElement('div');
+      item.className = type === 'fault' ? 'fault-item' : 'recovery-item';
+      item.innerHTML = `
+        <div class="flex justify-between items-start">
+          <span>${message}</span>
+          <span class="text-xs text-gray-500">${new Date().toLocaleTimeString()}</span>
+        </div>
+      `;
+      container.insertBefore(item, container.firstChild);
+
+      if (container.children.length > 10) {
+        container.removeChild(container.lastChild);
+      }
+    }
+
+    function showNodeDetails(nodeId) {
+      const node = gridState.nodes[nodeId];
+      if (!node) return;
+
+      let details = `<strong>Node: ${nodeId.toUpperCase()}</strong><br>`;
+      details += `Status: ${node.status.toUpperCase()}<br>`;
+      if (node.power !== undefined) details += `Power: ${node.power.toFixed(0)}W<br>`;
+      if (node.voltage !== undefined) details += `Voltage: ${node.voltage.toFixed(1)}V<br>`;
+      if (node.soc !== undefined) details += `State of Charge: ${node.soc.toFixed(1)}%<br>`;
+      if (node.priority) details += `Priority: ${node.priority.toUpperCase()}`;
+
+      showAlert(details, 'info');
+    }
+
+    function resetSimulation() {
+      simulationRunning = false;
+      gridState.faultsDetected = 0;
+      gridState.faultsRecovered = 0;
+
+      Object.keys(gridState.nodes).forEach(key => {
+        gridState.nodes[key].status = 'normal';
+        const element = document.getElementById(key + 'Node');
+        if (element) {
+          element.classList.remove('faulty', 'isolated', 'recovering');
+          element.classList.add('normal');
+        }
+      });
+
+      document.getElementById('activeFaultsList').innerHTML = '<p class="text-gray-500 text-sm">No faults detected. System healthy.</p>';
+      document.getElementById('recoveryActionsList').innerHTML = '<p class="text-gray-500 text-sm">No actions taken yet.</p>';
+
+      updateUIMetrics();
+      showAlert('System reset to initial state', 'success');
+    }
+
+    function showAlert(message, type = 'info') {
+      const container = document.getElementById('alertContainer');
+      const alert = document.createElement('div');
+      alert.className = `alert alert-${type}`;
+      alert.innerHTML = `<span>${message}</span>`;
+      container.appendChild(alert);
+
+      setTimeout(() => alert.remove(), 4000);
+    }
+
+    function showInfo() {
+      showAlert('SmartHeal System: AI-powered fault detection and automatic recovery for microgrids. Features include real-time monitoring, fault isolation, load redistribution, and self-healing capabilities.', 'info');
+      console.log('Info button clicked');
+    }
+
+    // Toggle Menu Function
+    function toggleMenu() {
+      const sideDashboard = document.getElementById('sideDashboard');
+      sideDashboard.classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

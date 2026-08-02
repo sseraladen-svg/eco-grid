@@ -1,0 +1,4 @@
+turbine_model,rated_power,cut_in_speed,cut_out_speed,rotor_diameter,turbine_efficiency
+WT5KW,5,3,25,8,0.35
+WT10KW,10,3,25,12,0.40
+WT20KW,20,3,25,18,0.42

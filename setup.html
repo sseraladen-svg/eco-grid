@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>EcoGrid Setup</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .hidden { display: none; }
+        select option {
+            background-color: #1f2937;
+            color: white;
+        }
+        select {
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        }
+        input {
+            background-color: rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        }
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+        #map {
+            height: 400px;
+            width: 100%;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .map-button {
+            background: linear-gradient(45deg, #10b981, #059669);
+            transition: all 0.3s ease;
+        }
+        .map-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        .notification.success {
+            background: linear-gradient(45deg, #10b981, #059669);
+        }
+        .notification.error {
+            background: linear-gradient(45deg, #ef4444, #dc2626);
+        }
+        .notification.info {
+            background: linear-gradient(45deg, #3b82f6, #2563eb);
+        }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-white mb-2">EcoGrid System Setup</h1>
+            <p class="text-xl text-gray-200">Configure your renewable energy system</p>
+        </header>
+
+        <!-- Quick Actions -->
+        <div class="max-w-2xl mx-auto mb-6">
+            <div class="flex gap-4 justify-center">
+                <!-- No quick action buttons - parameters contain sample data by default -->
+            </div>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="max-w-2xl mx-auto mb-8">
+            <div class="flex justify-between items-center">
+                <div class="flex-1">
+                    <div class="h-2 bg-gray-300 rounded-full">
+                        <div id="progress-bar" class="h-2 bg-blue-500 rounded-full transition-all duration-300" style="width: 20%"></div>
+                    </div>
+                </div>
+                <span id="step-indicator" class="ml-4 text-white font-semibold">Step 1 of 5</span>
+            </div>
+        </div>
+
+        <!-- Step 1: Location Parameters -->
+        <div id="step1" class="max-w-2xl mx-auto">
+            <div class="glass-effect rounded-xl p-8 text-white">
+                <h2 class="text-2xl font-bold mb-6">Location Parameters</h2>
+                
+                <!-- Location Map Button -->
+                <div class="mb-6 text-center">
+                    <button onclick="showMap()" class="bg-green-500 hover:bg-green-600 px-8 py-3 rounded-lg font-semibold transition-colors text-white text-lg">
+                        Select Location on Map
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Latitude</label>
+                        <select id="latitude" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="">Select Location</option>
+                            <option value="13.0717">Chennai, India (13.07N)</option>
+                            <option value="28.6139" selected>New Delhi, India (28.61N)</option>
+                            <option value="19.0760">Mumbai, India (19.08N)</option>
+                            <option value="12.9716">Bangalore, India (12.97N)</option>
+                            <option value="22.5726">Kolkata, India (22.57N)</option>
+                            <option value="17.3850">Hyderabad, India (17.39N)</option>
+                            <option value="26.9124">Pune, India (26.91N)</option>
+                            <option value="custom">Custom Latitude</option>
+                        </select>
+                        <input id="latitude-custom" type="number" step="0.0001" placeholder="Enter custom latitude" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white mt-2 hidden">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Longitude</label>
+                        <select id="longitude" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="">Select Location</option>
+                            <option value="80.1994">Chennai, India (80.20E)</option>
+                            <option value="77.2090" selected>New Delhi, India (77.21E)</option>
+                            <option value="72.8777">Mumbai, India (72.88E)</option>
+                            <option value="77.5946">Bangalore, India (77.59E)</option>
+                            <option value="88.3639">Kolkata, India (88.36E)</option>
+                            <option value="78.4867">Hyderabad, India (78.49E)</option>
+                            <option value="73.8563">Pune, India (73.86E)</option>
+                            <option value="custom">Custom Longitude</option>
+                        </select>
+                        <input id="longitude-custom" type="number" step="0.0001" placeholder="Enter custom longitude" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white mt-2 hidden">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Altitude (meters)</label>
+                        <select id="altitude" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="">Select Altitude</option>
+                            <option value="6.7">Chennai (6.7m)</option>
+                            <option value="216" selected>New Delhi (216m)</option>
+                            <option value="14">Mumbai (14m)</option>
+                            <option value="920">Bangalore (920m)</option>
+                            <option value="9">Kolkata (9m)</option>
+                            <option value="505">Hyderabad (505m)</option>
+                            <option value="560">Pune (560m)</option>
+                            <option value="custom">Custom Altitude</option>
+                        </select>
+                        <input id="altitude-custom" type="number" placeholder="Enter custom altitude" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white mt-2 hidden">
+                    </div>
+                    
+                    <!-- Map Container -->
+                    <div class="md:col-span-2">
+                        <div id="map-container" class="hidden">
+                            <label class="block text-sm font-medium mb-2">Select Location on Map</label>
+                            <div id="map"></div>
+                            <div class="mt-2 flex gap-2">
+                                <button onclick="confirmMapLocation()" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg text-white font-semibold transition-colors">
+                                    Confirm Location
+                                </button>
+                                <button onclick="hideMap()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-white font-semibold transition-colors">
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Installation Type</label>
+                        <select id="installation_type" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="urban">Urban</option>
+                            <option value="rural">Rural</option>
+                            <option value="coastal">Coastal</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Terrain Type</label>
+                        <select id="terrain_type" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="flat">Flat</option>
+                            <option value="hill">Hill</option>
+                            <option value="rooftop">Rooftop</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button onclick="nextStep(2)" class="mt-6 bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg font-semibold transition-colors">
+                    Next Step
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Solar System -->
+        <div id="step2" class="max-w-2xl mx-auto hidden">
+            <div class="glass-effect rounded-xl p-8 text-white">
+                <h2 class="text-2xl font-bold mb-6">Solar System</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Panel Model</label>
+                        <select id="panel_model" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="monocrystalline">Monocrystalline</option>
+                            <option value="polycrystalline">Polycrystalline</option>
+                            <option value="thin_film">Thin Film</option>
+                            <option value="bifacial">Bifacial</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Number of Panels</label>
+                        <input type="number" id="panel_count" value="20" placeholder="e.g., 20" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Panel Power (Watts)</label>
+                        <select id="panel_power" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="250">250W</option>
+                            <option value="300">300W</option>
+                            <option value="350">350W</option>
+                            <option value="400" selected>400W</option>
+                            <option value="450">450W</option>
+                            <option value="500">500W</option>
+                            <option value="550">550W</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Panel Efficiency (%)</label>
+                        <select id="panel_efficiency" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="15">15%</option>
+                            <option value="17">17%</option>
+                            <option value="19">19%</option>
+                            <option value="20" selected>20%</option>
+                            <option value="22">22%</option>
+                            <option value="23">23%</option>
+                            <option value="24">24%</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Tilt Angle (degrees)</label>
+                        <input type="number" id="tilt_angle" value="30" placeholder="e.g., 30" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Azimuth Angle (degrees)</label>
+                        <input type="number" id="azimuth_angle" value="180" placeholder="e.g., 180" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Installation Type</label>
+                        <select id="solar_installation" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="fixed" selected>Fixed</option>
+                            <option value="tracking_single">Single Axis Tracking</option>
+                            <option value="tracking_dual">Dual Axis Tracking</option>
+                            <option value="adjustable">Adjustable</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Inverter Efficiency (%)</label>
+                        <select id="inverter_efficiency" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="90">90%</option>
+                            <option value="92">92%</option>
+                            <option value="94">94%</option>
+                            <option value="95" selected>95%</option>
+                            <option value="96">96%</option>
+                            <option value="97">97%</option>
+                            <option value="98">98%</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">System Loss (%)</label>
+                        <select id="system_loss" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="5">5%</option>
+                            <option value="8">8%</option>
+                            <option value="10" selected>10%</option>
+                            <option value="12">12%</option>
+                            <option value="15">15%</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Shading Factor (%)</label>
+                        <select id="shading_factor" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="0">No Shading</option>
+                            <option value="5">5%</option>
+                            <option value="10" selected>10%</option>
+                            <option value="15">15%</option>
+                            <option value="20">20%</option>
+                            <option value="25">25%</option>
+                            <option value="30">30%</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex gap-4 mt-6">
+                    <button onclick="nextStep(1)" class="bg-gray-500 hover:bg-gray-600 px-6 py-3 rounded-lg font-semibold transition-colors">
+                        Previous
+                    </button>
+                    <button onclick="nextStep(3)" class="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg font-semibold transition-colors">
+                        Next Step
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Wind System -->
+        <div id="step3" class="max-w-2xl mx-auto hidden">
+            <div class="glass-effect rounded-xl p-8 text-white">
+                <h2 class="text-2xl font-bold mb-6">Wind System</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Turbine Model</label>
+                        <select id="turbine_model" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="small_hawt" selected>Small HAWT</option>
+                            <option value="medium_hawt">Medium HAWT</option>
+                            <option value="large_hawt">Large HAWT</option>
+                            <option value="vawt">VAWT</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Number of Turbines</label>
+                        <input type="number" id="turbine_count" value="2" placeholder="e.g., 2" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Rated Power (Watts)</label>
+                        <select id="rated_power" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="1000">1kW</option>
+                            <option value="2000">2kW</option>
+                            <option value="3000">3kW</option>
+                            <option value="5000" selected>5kW</option>
+                            <option value="10000">10kW</option>
+                            <option value="20000">20kW</option>
+                            <option value="50000">50kW</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Cut-in Speed (m/s)</label>
+                        <input type="number" id="cut_in_speed" value="3" placeholder="e.g., 3" step="0.1" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Cut-out Speed (m/s)</label>
+                        <input type="number" id="cut_out_speed" value="25" placeholder="e.g., 25" step="0.1" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Hub Height (meters)</label>
+                        <input type="number" id="hub_height" value="30" placeholder="e.g., 30" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Rotor Diameter (meters)</label>
+                        <input type="number" id="rotor_diameter" value="10" placeholder="e.g., 10" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Turbine Efficiency (%)</label>
+                        <input type="number" id="turbine_efficiency" value="35" placeholder="e.g., 35" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                    </div>
+                </div>
+                
+                <div class="flex gap-4 mt-6">
+                    <button onclick="nextStep(2)" class="bg-gray-500 hover:bg-gray-600 px-6 py-3 rounded-lg font-semibold transition-colors">
+                        Previous
+                    </button>
+                    <button onclick="nextStep(4)" class="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg font-semibold transition-colors">
+                        Next Step
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Battery System -->
+        <div id="step4" class="max-w-2xl mx-auto hidden">
+            <div class="glass-effect rounded-xl p-8 text-white">
+                <h2 class="text-2xl font-bold mb-6">Battery System</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Battery Capacity (kWh)</label>
+                        <input type="number" id="battery_capacity" placeholder="e.g., 10" step="0.1" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Battery Voltage (V)</label>
+                        <select id="battery_voltage" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="12">12V</option>
+                            <option value="24">24V</option>
+                            <option value="48">48V</option>
+                            <option value="96">96V</option>
+                            <option value="120">120V</option>
+                            <option value="240">240V</option>
+                            <option value="400">400V</option>
+                            <option value="800">800V</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Charge Efficiency (%)</label>
+                        <select id="charge_efficiency" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="85">85%</option>
+                            <option value="90">90%</option>
+                            <option value="92">92%</option>
+                            <option value="94">94%</option>
+                            <option value="95">95%</option>
+                            <option value="96">96%</option>
+                            <option value="97">97%</option>
+                            <option value="98">98%</option>
+                            <option value="99">99%</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Discharge Efficiency (%)</label>
+                        <select id="discharge_efficiency" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="85">85%</option>
+                            <option value="90">90%</option>
+                            <option value="92">92%</option>
+                            <option value="94">94%</option>
+                            <option value="95">95%</option>
+                            <option value="96">96%</option>
+                            <option value="97">97%</option>
+                            <option value="98">98%</option>
+                            <option value="99">99%</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Max Discharge Rate (kW)</label>
+                        <input type="number" id="max_discharge_rate" placeholder="e.g., 5" step="0.1" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                    </div>
+                </div>
+                
+                <div class="flex gap-4 mt-6">
+                    <button onclick="nextStep(3)" class="bg-gray-500 hover:bg-gray-600 px-6 py-3 rounded-lg font-semibold transition-colors">
+                        Previous
+                    </button>
+                    <button onclick="nextStep(5)" class="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg font-semibold transition-colors">
+                        Next Step
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5: Energy Consumption -->
+        <div id="step5" class="max-w-2xl mx-auto hidden">
+            <div class="glass-effect rounded-xl p-8 text-white">
+                <h2 class="text-2xl font-bold mb-6">Energy Consumption</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Daily Energy Usage (kWh)</label>
+                        <input type="number" id="daily_energy_usage" placeholder="e.g., 30" step="0.1" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Peak Load (kW)</label>
+                        <select id="peak_load" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="1">1 kW</option>
+                            <option value="2">2 kW</option>
+                            <option value="3">3 kW</option>
+                            <option value="5">5 kW</option>
+                            <option value="10">10 kW</option>
+                            <option value="15">15 kW</option>
+                            <option value="20">20 kW</option>
+                            <option value="25">25 kW</option>
+                            <option value="50">50 kW</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Critical Load (kW)</label>
+                        <select id="critical_load" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="1">1 kW</option>
+                            <option value="2">2 kW</option>
+                            <option value="3">3 kW</option>
+                            <option value="5">5 kW</option>
+                            <option value="10">10 kW</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Load Profile Type</label>
+                        <select id="load_profile_type" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
+                            <option value="residential">Residential</option>
+                            <option value="industrial">Industrial</option>
+                            <option value="commercial">Commercial</option>
+                            <option value="agricultural">Agricultural</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="flex gap-4 mt-6">
+                    <button onclick="nextStep(4)" class="bg-gray-500 hover:bg-gray-600 px-6 py-3 rounded-lg font-semibold transition-colors">
+                        Previous
+                    </button>
+                    <button onclick="submitSetup()" class="bg-green-500 hover:bg-green-600 px-6 py-3 rounded-lg font-semibold transition-colors">
+                        Generate Forecast
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Handle custom input fields
+        document.getElementById('latitude').addEventListener('change', function() {
+            const customInput = document.getElementById('latitude-custom');
+            if (this.value === 'custom') {
+                customInput.classList.remove('hidden');
+            } else {
+                customInput.classList.add('hidden');
+                customInput.value = '';
+            }
+        });
+
+        document.getElementById('longitude').addEventListener('change', function() {
+            const customInput = document.getElementById('longitude-custom');
+            if (this.value === 'custom') {
+                customInput.classList.remove('hidden');
+            } else {
+                customInput.classList.add('hidden');
+                customInput.value = '';
+            }
+        });
+
+        document.getElementById('altitude').addEventListener('change', function() {
+            const customInput = document.getElementById('altitude-custom');
+            if (this.value === 'custom') {
+                customInput.classList.remove('hidden');
+            } else {
+                customInput.classList.add('hidden');
+                customInput.value = '';
+            }
+        });
+
+        // Map functionality
+        let map;
+        let marker;
+
+        function showMap() {
+            document.getElementById('map-container').classList.remove('hidden');
+            if (!map) {
+                map = L.map('map').setView([20.5937, 78.9629], 5);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: 'OpenStreetMap contributors'
+                }).addTo(map);
+
+                const geocoder = L.Control.geocoder({
+                    defaultMarkGeocode: false,
+                    placeholder: 'Search for a location...',
+                    errorMessage: 'Nothing found.',
+                    showResultIcons: false,
+                    suggestMinLength: 3,
+                    suggestTimeout: 250,
+                    queryMinLength: 1
+                }).on('markgeocode', function(e) {
+                    const latlng = e.geocode.center;
+                    marker = L.marker(latlng).addTo(map);
+                    map.setView(latlng, 12);
+                }).addTo(map);
+
+                map.on('click', function(e) {
+                    if (marker) {
+                        map.removeLayer(marker);
+                    }
+                    marker = L.marker(e.latlng).addTo(map);
+                });
+            }
+        }
+
+        function hideMap() {
+            document.getElementById('map-container').classList.add('hidden');
+        }
+
+        function confirmMapLocation() {
+            if (marker) {
+                const latlng = marker.getLatLng();
+                document.getElementById('latitude').value = 'custom';
+                document.getElementById('longitude').value = 'custom';
+                document.getElementById('latitude-custom').value = latlng.lat.toFixed(4);
+                document.getElementById('longitude-custom').value = latlng.lng.toFixed(4);
+                
+                // Show custom inputs
+                document.getElementById('latitude-custom').classList.remove('hidden');
+                document.getElementById('longitude-custom').classList.remove('hidden');
+                
+                hideMap();
+                showNotification('Location selected from map!', 'success');
+            } else {
+                showNotification('Please select a location on the map', 'error');
+            }
+        }
+
+        function getAltitude() {
+            const lat = document.getElementById('latitude').value === 'custom' ? 
+                document.getElementById('latitude-custom').value : 
+                document.getElementById('latitude').value;
+            const lng = document.getElementById('longitude').value === 'custom' ? 
+                document.getElementById('longitude-custom').value : 
+                document.getElementById('longitude').value;
+
+            if (!lat || !lng) {
+                showNotification('Please select latitude and longitude first', 'error');
+                return;
+            }
+
+            // Using a simple elevation API (you may need to sign up for an API key)
+            fetch(`https://api.open-elevation.com/api/v1/lookup?locations=${lat},${lng}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.results && data.results.length > 0) {
+                        const altitude = data.results[0].elevation.toFixed(1);
+                        document.getElementById('altitude').value = 'custom';
+                        document.getElementById('altitude-custom').value = altitude;
+                        document.getElementById('altitude-custom').classList.remove('hidden');
+                        showNotification(`Altitude detected: ${altitude}m`, 'success');
+                    } else {
+                        showNotification('Could not fetch altitude data', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching altitude:', error);
+                    showNotification('Error fetching altitude data', 'error');
+                });
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Load existing setup when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadExistingSetup();
+        });
+
+        // Function to load existing setup data
+        function loadExistingSetup() {
+            try {
+                const savedData = sessionStorage.getItem('setupData');
+                if (savedData) {
+                    const configData = JSON.parse(savedData);
+                    populateForm(configData);
+                    console.log('Existing setup data loaded');
+                }
+            } catch (error) {
+                console.error('Error loading existing setup:', error);
+            }
+        }
+
+        // Function to populate form with data
+        function populateForm(configData) {
+            try {
+                // Location data
+                if (configData.location) {
+                    const location = configData.location;
+                    if (location.latitude) {
+                        if (document.getElementById('latitude').querySelector(`option[value="${location.latitude}"]`)) {
+                            document.getElementById('latitude').value = location.latitude;
+                        } else {
+                            document.getElementById('latitude').value = 'custom';
+                            document.getElementById('latitude-custom').value = location.latitude;
+                            document.getElementById('latitude-custom').classList.remove('hidden');
+                        }
+                    }
+                    if (location.longitude) {
+                        if (document.getElementById('longitude').querySelector(`option[value="${location.longitude}"]`)) {
+                            document.getElementById('longitude').value = location.longitude;
+                        } else {
+                            document.getElementById('longitude').value = 'custom';
+                            document.getElementById('longitude-custom').value = location.longitude;
+                            document.getElementById('longitude-custom').classList.remove('hidden');
+                        }
+                    }
+                    if (location.altitude) {
+                        if (document.getElementById('altitude').querySelector(`option[value="${location.altitude}"]`)) {
+                            document.getElementById('altitude').value = location.altitude;
+                        } else {
+                            document.getElementById('altitude').value = 'custom';
+                            document.getElementById('altitude-custom').value = location.altitude;
+                            document.getElementById('altitude-custom').classList.remove('hidden');
+                        }
+                    }
+                    if (location.installation_type) document.getElementById('installation_type').value = location.installation_type;
+                    if (location.terrain_type) document.getElementById('terrain_type').value = location.terrain_type;
+                }
+
+                // Solar data
+                if (configData.solar) {
+                    const solar = configData.solar;
+                    if (solar.panel_model) document.getElementById('panel_model').value = solar.panel_model;
+                    if (solar.panel_count) document.getElementById('panel_count').value = solar.panel_count;
+                    if (solar.panel_power) document.getElementById('panel_power').value = solar.panel_power;
+                    if (solar.panel_efficiency) document.getElementById('panel_efficiency').value = solar.panel_efficiency;
+                    if (solar.tilt_angle) document.getElementById('tilt_angle').value = solar.tilt_angle;
+                    if (solar.azimuth_angle) document.getElementById('azimuth_angle').value = solar.azimuth_angle;
+                    if (solar.installation_type) document.getElementById('solar_installation').value = solar.installation_type;
+                    if (solar.inverter_efficiency) document.getElementById('inverter_efficiency').value = solar.inverter_efficiency;
+                    if (solar.system_loss) document.getElementById('system_loss').value = solar.system_loss;
+                    if (solar.shading_factor) document.getElementById('shading_factor').value = solar.shading_factor;
+                }
+
+                // Wind data
+                if (configData.wind) {
+                    const wind = configData.wind;
+                    if (wind.turbine_model) document.getElementById('turbine_model').value = wind.turbine_model;
+                    if (wind.turbine_count) document.getElementById('turbine_count').value = wind.turbine_count;
+                    if (wind.rated_power) document.getElementById('rated_power').value = wind.rated_power;
+                    if (wind.cut_in_speed) document.getElementById('cut_in_speed').value = wind.cut_in_speed;
+                    if (wind.cut_out_speed) document.getElementById('cut_out_speed').value = wind.cut_out_speed;
+                    if (wind.hub_height) document.getElementById('hub_height').value = wind.hub_height;
+                    if (wind.rotor_diameter) document.getElementById('rotor_diameter').value = wind.rotor_diameter;
+                    if (wind.turbine_efficiency) document.getElementById('turbine_efficiency').value = wind.turbine_efficiency;
+                }
+
+                // Battery data
+                if (configData.battery) {
+                    const battery = configData.battery;
+                    if (battery.battery_capacity) document.getElementById('battery_capacity').value = battery.battery_capacity;
+                    if (battery.battery_voltage) document.getElementById('battery_voltage').value = battery.battery_voltage;
+                    if (battery.charge_efficiency) document.getElementById('charge_efficiency').value = battery.charge_efficiency;
+                    if (battery.discharge_efficiency) document.getElementById('discharge_efficiency').value = battery.discharge_efficiency;
+                    if (battery.max_discharge_rate) document.getElementById('max_discharge_rate').value = battery.max_discharge_rate;
+                }
+
+                // Consumption data
+                if (configData.consumption) {
+                    const consumption = configData.consumption;
+                    if (consumption.daily_energy_usage) document.getElementById('daily_energy_usage').value = consumption.daily_energy_usage;
+                    if (consumption.peak_load) document.getElementById('peak_load').value = consumption.peak_load;
+                    if (consumption.critical_load) document.getElementById('critical_load').value = consumption.critical_load;
+                    if (consumption.load_profile_type) document.getElementById('load_profile_type').value = consumption.load_profile_type;
+                }
+
+                console.log('Form populated with existing data');
+            } catch (error) {
+                console.error('Error populating form:', error);
+            }
+        }
+
+        // Function to load sample data
+        function loadSampleData() {
+            const sampleData = {
+                location: {
+                    latitude: "28.6139",
+                    longitude: "77.2090",
+                    altitude: "216",
+                    installation_type: "rooftop",
+                    terrain_type: "urban"
+                },
+                solar: {
+                    panel_model: "monocrystalline",
+                    panel_count: "20",
+                    panel_power: "400",
+                    panel_efficiency: "20",
+                    tilt_angle: "30",
+                    azimuth_angle: "180",
+                    installation_type: "fixed",
+                    inverter_efficiency: "95",
+                    system_loss: "10",
+                    shading_factor: "10"
+                },
+                wind: {
+                    turbine_model: "small_hawt",
+                    turbine_count: "2",
+                    rated_power: "5000",
+                    cut_in_speed: "3",
+                    cut_out_speed: "25",
+                    hub_height: "30",
+                    rotor_diameter: "10",
+                    turbine_efficiency: "35"
+                },
+                battery: {
+                    battery_capacity: "10",
+                    battery_voltage: "48",
+                    charge_efficiency: "95",
+                    discharge_efficiency: "95",
+                    max_discharge_rate: "5"
+                },
+                consumption: {
+                    daily_energy_usage: "30",
+                    peak_load: "5",
+                    critical_load: "2",
+                    load_profile_type: "residential"
+                }
+            };
+
+            populateForm(sampleData);
+            showNotification('Default data loaded! You can modify any settings before submitting.', 'success');
+        }
+    </script>
+</body>
+</html>
