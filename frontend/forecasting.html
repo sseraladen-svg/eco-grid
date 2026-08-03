@@ -280,12 +280,12 @@
         <div class="sub">Train the Prophet model on your site's history, then generate a 30-day forecast.</div>
       </div>
       <div class="control-actions">
-        <button class="btn btn-secondary" id="trainBtn" onclick="trainModel()">
+        <button class="btn btn-secondary" id="trainBtn">
           <span class="spinner"></span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 00-4 4v1.17A5 5 0 004 12v6a2 2 0 002 2h12a2 2 0 002-2v-6a5 5 0 00-4-4.83V6a4 4 0 00-4-4z"/><path d="M9 16h6"/></svg>
           <span class="btn-label">Train model</span>
         </button>
-        <button class="btn btn-primary" id="forecastBtn" onclick="generateForecast()" disabled>
+        <button class="btn btn-primary" id="forecastBtn" disabled>
           <span class="spinner"></span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-6 4 4 8-9"/><path d="M14 6h6v6"/></svg>
           <span class="btn-label">Generate forecast</span>
@@ -409,9 +409,44 @@
   document.addEventListener('DOMContentLoaded', init);
 
   async function init(){
+    console.log('Initializing forecasting page...');
+    
     document.getElementById('exportNavBtn').addEventListener('click', exportData);
     document.getElementById('logoutBtn').addEventListener('click', logout);
+    document.getElementById('trainBtn').addEventListener('click', trainModel);
+    document.getElementById('forecastBtn').addEventListener('click', generateForecast);
+    
+    // Load forecast data immediately
+    await loadForecastData();
     await loadModelStatus();
+  }
+
+  async function loadForecastData(){
+    try {
+      console.log('Loading forecast data...');
+      const res = await fetch('/forecast');
+      const data = await res.json();
+      console.log('Forecast data:', data);
+      
+      if(data.status === 'success' && data.forecast && data.forecast.length > 0){
+        forecast = data.forecast;
+        stats = data.statistics || {};
+        renderChart();
+        renderStats();
+        renderTable();
+        console.log('Forecast data loaded successfully');
+      } else {
+        console.log('No forecast data available');
+        renderChart();
+        renderStats();
+        renderTable();
+      }
+    } catch(e){
+      console.error('Error loading forecast data:', e);
+      renderChart();
+      renderStats();
+      renderTable();
+    }
   }
 
   async function loadModelStatus(){
