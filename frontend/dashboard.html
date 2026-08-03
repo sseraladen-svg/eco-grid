@@ -486,12 +486,25 @@
 
   async function loadAll(isRefresh){
     try {
+      console.log('Loading dashboard data...');
+      
       const [configsRes, activeRes] = await Promise.all([
         fetch('/api/user/configurations'),
         fetch('/api/setup/active')
       ]);
 
+      console.log('Configs response status:', configsRes.status);
+      console.log('Active response status:', activeRes.status);
+
+      // If authentication fails, try to load sample data
+      if(configsRes.status === 401 || activeRes.status === 401){
+        console.log('Authentication required, loading sample data');
+        loadSampleData();
+        return;
+      }
+
       if(activeRes.status === 404 || activeRes.status === 400){
+        console.log('No active configuration found, showing empty state');
         showEmpty();
         return;
       }
@@ -499,10 +512,17 @@
       const configsData = await configsRes.json();
       const activeData = await activeRes.json();
 
+      console.log('Configs data:', configsData);
+      console.log('Active data:', activeData);
+
       allConfigs = configsData.configurations || [];
       activeConfig = activeData.configuration;
 
-      if(!activeConfig){ showEmpty(); return; }
+      if(!activeConfig){ 
+        console.log('Active config is null, showing empty state');
+        showEmpty(); 
+        return; 
+      }
 
       renderSiteSwitcher();
       renderSiteReadout();
@@ -513,8 +533,14 @@
         fetch('/forecast/model/status')
       ]);
 
+      console.log('Forecast response status:', forecastRes.status);
+      console.log('Status response status:', statusRes.status);
+
       const forecastData = await forecastRes.json();
       const statusData = await statusRes.json();
+
+      console.log('Forecast data:', forecastData);
+      console.log('Status data:', statusData);
 
       physicsForecast = forecastData;
       modelStatus = statusData.model || { trained: false };
@@ -524,9 +550,56 @@
 
       if(isRefresh) showToast('Dashboard refreshed');
     } catch (err){
-      console.error(err);
+      console.error('Error loading dashboard:', err);
       showToast('Could not load dashboard data', true);
     }
+  }
+
+  function loadSampleData(){
+    console.log('Loading sample data for demo');
+    
+    // Sample configuration
+    activeConfig = {
+      id: 1,
+      name: 'Demo Site',
+      config_data: {
+        location: { latitude: 28.6139, longitude: 77.2090 },
+        solar: { panel_count: 20, panel_power: 400 },
+        wind: { turbine_count: 2, rated_power: 5000 },
+        battery: { battery_capacity: 10 },
+        consumption: { daily_energy_usage: 30 }
+      }
+    };
+    
+    allConfigs = [activeConfig];
+    
+    // Sample forecast data
+    physicsForecast = {
+      status: 'success',
+      forecast: Array.from({length: 30}, (_, i) => ({
+        date: new Date(Date.now() + i * 86400000).toISOString().split('T')[0],
+        solar_energy: 5 + Math.random() * 3,
+        wind_energy: 3 + Math.random() * 2,
+        total_generation: 8 + Math.random() * 5,
+        demand: 25 + Math.random() * 5,
+        battery_storage: 60 + Math.random() * 20
+      })),
+      statistics: {
+        accuracy: 85.0,
+        trend_direction: 'increasing',
+        volatility: 0.15,
+        peak_prediction: 12.5
+      }
+    };
+    
+    modelStatus = { trained: false };
+    
+    renderSiteSwitcher();
+    renderSiteReadout();
+    renderSitesTable();
+    updateModelPill();
+    renderContent();
+    showToast('Loaded sample data (demo mode)');
   }
 
   function showEmpty(){
