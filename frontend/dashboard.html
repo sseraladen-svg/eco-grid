@@ -488,91 +488,47 @@
     try {
       console.log('Loading dashboard data...');
       
-      // Try to load data without authentication first
+      // Get forecast data directly from API
       const forecastRes = await fetch('/forecast');
       console.log('Forecast response status:', forecastRes.status);
       
       const forecastData = await forecastRes.json();
       console.log('Forecast data:', forecastData);
       
-      // If we got forecast data, use it
-      if(forecastData && forecastData.status === 'success' && forecastData.forecast && forecastData.forecast.length > 0){
-        console.log('Using forecast data directly');
-        
-        // Create a sample active config
-        activeConfig = {
-          id: 1,
-          name: 'Demo Site',
-          config_data: {
-            location: { latitude: 28.6139, longitude: 77.2090 },
-            solar: { panel_count: 20, panel_power: 400 },
-            wind: { turbine_count: 2, rated_power: 5000 },
-            battery: { battery_capacity: 10 },
-            consumption: { daily_energy_usage: 30 }
-          }
-        };
-        
-        allConfigs = [activeConfig];
-        physicsForecast = forecastData;
-        modelStatus = { trained: false };
-        
-        renderSiteSwitcher();
-        renderSiteReadout();
-        renderSitesTable();
-        updateModelPill();
-        renderContent();
-        
-        if(isRefresh) showToast('Dashboard refreshed');
-        return;
-      }
+      // Get model status
+      const statusRes = await fetch('/forecast/model/status');
+      const statusData = await statusRes.json();
+      console.log('Status data:', statusData);
       
-      // If that didn't work, try with authentication
-      const [configsRes, activeRes] = await Promise.all([
-        fetch('/api/user/configurations'),
-        fetch('/api/setup/active')
-      ]);
-
-      console.log('Configs response status:', configsRes.status);
-      console.log('Active response status:', activeRes.status);
-
-      // If authentication fails, try to load sample data
-      if(configsRes.status === 401 || activeRes.status === 401){
-        console.log('Authentication required, loading sample data');
-        loadSampleData();
-        return;
-      }
-
-      if(activeRes.status === 404 || activeRes.status === 400){
-        console.log('No active configuration found, showing empty state');
-        showEmpty();
-        return;
-      }
-
-      const configsData = await configsRes.json();
-      const activeData = await activeRes.json();
-
-      console.log('Configs data:', configsData);
-      console.log('Active data:', activeData);
-
-      allConfigs = configsData.configurations || [];
-      activeConfig = activeData.configuration;
-
-      if(!activeConfig){ 
-        console.log('Active config is null, showing empty state');
-        showEmpty(); 
-        return; 
-      }
-
+      // Create sample config for demo
+      activeConfig = {
+        id: 1,
+        name: 'Demo Site',
+        config_data: {
+          location: { latitude: 28.6139, longitude: 77.2090 },
+          solar: { panel_count: 20, panel_power: 400 },
+          wind: { turbine_count: 2, rated_power: 5000 },
+          battery: { battery_capacity: 10 },
+          consumption: { daily_energy_usage: 30 }
+        }
+      };
+      
+      allConfigs = [activeConfig];
+      physicsForecast = forecastData;
+      modelStatus = statusData.model || { trained: false };
+      
       renderSiteSwitcher();
       renderSiteReadout();
       renderSitesTable();
-
-      const [newForecastRes, statusRes] = await Promise.all([
-        fetch('/forecast'),
-        fetch('/forecast/model/status')
-      ]);
-
-      console.log('Forecast response status:', newForecastRes.status);
+      updateModelPill();
+      renderContent();
+      
+      if(isRefresh) showToast('Dashboard refreshed');
+    } catch (err){
+      console.error('Error loading dashboard:', err);
+      showToast('Could not load dashboard data', true);
+    }
+  }
       console.log('Status response status:', statusRes.status);
 
       const forecastData = await forecastRes.json();
