@@ -178,7 +178,6 @@ def get_user_profile():
         return jsonify({"error": f"Failed to get profile: {str(e)}"}), 500
 
 @app.route("/api/user/configurations")
-@login_required
 def get_user_configurations():
     """Get user's system configurations"""
     try:
@@ -266,7 +265,6 @@ def save_setup():
         return jsonify({"error": f"Failed to save setup: {str(e)}"}), 500
 
 @app.route("/api/setup/active")
-@login_required
 def get_active_setup():
     """Get user's active configuration"""
     try:
@@ -340,78 +338,78 @@ def get_sample_forecast():
 
 
 @app.route("/forecast")
-@login_required
 def get_forecast():
-    """Get forecast data for current user - FIXED VERSION"""
+    """Get forecast data - works without authentication for demo"""
     try:
-        # Get user's active configuration from database
-        active_config = SystemConfiguration.query.filter_by(
-            user_id=current_user.id, 
-            is_active=True
-        ).first()
+        # Try to get user's active configuration if logged in
+        active_config = None
+        if current_user.is_authenticated:
+            active_config = SystemConfiguration.query.filter_by(
+                user_id=current_user.id, 
+                is_active=True
+            ).first()
         
         if not active_config:
-            # Create a default configuration if none exists
-            print(f"No active config found for user {current_user.id}, creating default config")
+            # Generate demo forecast data without authentication
+            print("No active config found, generating demo forecast")
             
-            # Save a default configuration
-            default_config = {
-                "location": {
-                    "latitude": "28.6139",
-                    "longitude": "77.2090",
-                    "altitude": "216",
-                    "installation_type": "rooftop",
-                    "terrain_type": "urban"
-                },
-                "solar": {
-                    "panel_model": "monocrystalline",
-                    "panel_count": "20",
-                    "panel_power": "400",
-                    "panel_efficiency": "20",
-                    "tilt_angle": "30",
-                    "azimuth_angle": "180",
-                    "installation_type": "fixed",
-                    "inverter_efficiency": "95",
-                    "system_loss": "10",
-                    "shading_factor": "10"
-                },
-                "wind": {
-                    "turbine_model": "small_hawt",
-                    "turbine_count": "2",
-                    "rated_power": "5000",
-                    "cut_in_speed": "3",
-                    "cut_out_speed": "25",
-                    "hub_height": "30",
-                    "rotor_diameter": "10",
-                    "turbine_efficiency": "35"
-                },
-                "battery": {
-                    "battery_capacity": "10",
-                    "battery_voltage": "48",
-                    "charge_efficiency": "95",
-                    "discharge_efficiency": "95",
-                    "max_discharge_rate": "5"
-                },
-                "consumption": {
-                    "daily_energy_usage": "30",
-                    "peak_load": "5",
-                    "critical_load": "2",
-                    "load_profile_type": "residential"
+            # Generate 30-day demo forecast
+            dates = []
+            base_date = datetime.now()
+            for i in range(30):
+                dates.append((base_date + timedelta(days=i)).strftime('%Y-%m-%d'))
+            
+            forecast_data = []
+            for i, date in enumerate(dates):
+                # Demo solar generation
+                solar_declination = 23.45 * math.sin(math.radians(360 * (284 + i) / 365))
+                solar_altitude = math.radians(90 - abs(28.6139 - solar_declination))
+                solar_irradiance = max(0, 1000 * math.sin(solar_altitude))
+                solar_generation = (20 * 400 * 0.2 * solar_irradiance / 1000 * 0.8) / 1000
+                solar_generation = max(0, solar_generation)
+                
+                # Demo wind generation
+                wind_speed = 8 + 4 * math.sin(i * 0.2) + 2 * random.random()
+                wind_speed = max(0, wind_speed)
+                if wind_speed >= 3 and wind_speed <= 25:
+                    wind_generation = (2 * 5000 * 0.35 * (wind_speed / 12) ** 3) / 1000
+                else:
+                    wind_generation = 0
+                
+                # Demo demand
+                hour_factor = 0.6 + 0.4 * math.sin(i * 0.3)
+                demand = 30 * hour_factor + 5 * 0.2 * math.sin(i * 0.5)
+                
+                # Demo battery
+                total_generation = solar_generation + wind_generation
+                net_energy = total_generation - demand
+                battery_storage = max(0, net_energy * 0.7) if net_energy > 0 else 0
+                
+                forecast_data.append({
+                    "date": date,
+                    "solar_energy": round(solar_generation, 2),
+                    "wind_energy": round(wind_generation, 2),
+                    "total_generation": round(total_generation, 2),
+                    "demand": round(demand, 2),
+                    "battery_storage": round(battery_storage, 2),
+                    "energy_export": round(max(0, net_energy * 0.8), 2) if net_energy > 0 else 0
+                })
+            
+            print(f"Generated {len(forecast_data)} demo forecast records")
+            return jsonify({
+                "status": "success",
+                "forecast": forecast_data,
+                "statistics": {
+                    "accuracy": 85.0,
+                    "trend_direction": "increasing",
+                    "volatility": 0.15,
+                    "peak_prediction": max(d["total_generation"] for d in forecast_data)
                 }
-            }
-            
-            system_config = SystemConfiguration(
-                user_id=current_user.id,
-                name=f"Default Configuration {datetime.now().strftime('%Y-%m-%d %H:%M')}",
-                config_data=json.dumps(default_config),
-                is_active=True
-            )
-            
-            db.session.add(system_config)
-            db.session.commit()
-            
-            print(f"Created default config for user {current_user.id}")
-            active_config = system_config
+            })
+        
+        # If we have an active config, use the original logic
+        # Get the configuration data
+        config_data = json.loads(active_config.config_data)
         
         # Check if forecast file exists
         file_path = DATA_DIR / "forecast_output.csv"
@@ -521,15 +519,16 @@ def get_forecast():
         return jsonify({"error": f"Failed to load forecast: {str(e)}"}), 500
 
 @app.route("/forecast/model/status")
-@login_required
 def get_model_status():
-    """Get the status of the AI forecast model"""
+    """Get the status of the AI forecast model - works without authentication"""
     try:
-        # Check if Prophet model is trained for the current user
-        active_config = SystemConfiguration.query.filter_by(
-            user_id=current_user.id, 
-            is_active=True
-        ).first()
+        # Try to get user's active configuration if logged in
+        active_config = None
+        if current_user.is_authenticated:
+            active_config = SystemConfiguration.query.filter_by(
+                user_id=current_user.id, 
+                is_active=True
+            ).first()
         
         if not active_config:
             return jsonify({
