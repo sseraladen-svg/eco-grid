@@ -475,18 +475,27 @@
   document.addEventListener('DOMContentLoaded', init);
 
   async function init(){
+    console.log('Initializing dashboard...');
+    
+    // Set up event listeners
     document.getElementById('refreshBtn').addEventListener('click', () => loadAll(true));
     document.getElementById('exportNavBtn').addEventListener('click', exportForecast);
     document.getElementById('logoutBtn').addEventListener('click', logout);
     document.addEventListener('click', (e) => {
       if(!e.target.closest('.site-switcher')) document.getElementById('siteMenu').classList.remove('open');
     });
+    
+    // Load data
     await loadAll();
   }
 
   async function loadAll(isRefresh){
     try {
       console.log('Loading dashboard data...');
+      
+      // Hide loading state and show dashboard immediately
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('dashboardContent').style.display = 'block';
       
       // Get forecast data directly from API
       const forecastRes = await fetch('/forecast');
@@ -526,26 +535,9 @@
       if(isRefresh) showToast('Dashboard refreshed');
     } catch (err){
       console.error('Error loading dashboard:', err);
-      showToast('Could not load dashboard data', true);
-    }
-  }
-      console.log('Status response status:', statusRes.status);
-
-      const forecastData = await forecastRes.json();
-      const statusData = await statusRes.json();
-
-      console.log('Forecast data:', forecastData);
-      console.log('Status data:', statusData);
-
-      physicsForecast = forecastData;
-      modelStatus = statusData.model || { trained: false };
-
-      updateModelPill();
-      renderContent();
-
-      if(isRefresh) showToast('Dashboard refreshed');
-    } catch (err){
-      console.error('Error loading dashboard:', err);
+      // Still show dashboard even if there's an error
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('dashboardContent').style.display = 'block';
       showToast('Could not load dashboard data', true);
     }
   }
@@ -603,6 +595,7 @@
   }
 
   function renderContent(){
+    console.log('Rendering content...');
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('emptyState').style.display = 'none';
     document.getElementById('dashboardContent').style.display = 'block';
@@ -610,8 +603,10 @@
     document.getElementById('siteSubtitle').textContent =
       `Tracking ${allConfigs.length} site${allConfigs.length === 1 ? '' : 's'} · viewing ${activeConfig.name}`;
 
+    console.log('Rendering KPIs with data:', physicsForecast);
     renderKPIs(physicsForecast);
     setSource('physics');
+    console.log('Content rendered');
   }
 
   function renderKPIs(data){
