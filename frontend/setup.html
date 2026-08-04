@@ -1,860 +1,518 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>EcoGrid Setup</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
-    <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        .hidden { display: none; }
-        select option {
-            background-color: #1f2937;
-            color: white;
-        }
-        select {
-            background-color: rgba(255, 255, 255, 0.2) !important;
-            color: white !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
-        }
-        input {
-            background-color: rgba(255, 255, 255, 0.2) !important;
-            color: white !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
-        }
-        input::placeholder {
-            color: rgba(255, 255, 255, 0.7) !important;
-        }
-        #map {
-            height: 400px;
-            width: 100%;
-            border-radius: 8px;
-            margin-top: 10px;
-        }
-        .map-button {
-            background: linear-gradient(45deg, #10b981, #059669);
-            transition: all 0.3s ease;
-        }
-        .map-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-        }
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 16px 24px;
-            border-radius: 8px;
-            color: white;
-            font-weight: 500;
-            z-index: 1000;
-            animation: slideIn 0.3s ease;
-        }
-        .notification.success {
-            background: linear-gradient(45deg, #10b981, #059669);
-        }
-        .notification.error {
-            background: linear-gradient(45deg, #ef4444, #dc2626);
-        }
-        .notification.info {
-            background: linear-gradient(45deg, #3b82f6, #2563eb);
-        }
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoGrid AI — Setup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#0B1120;
+    --bg-panel:#101A2E;
+    --bg-card:#141E33;
+    --line:#243250;
+    --copper:#E8934A;
+    --copper-dim:#B9713A;
+    --teal:#3DDBD9;
+    --text:#F5F3EE;
+    --text-muted:#8B93A7;
+    --text-faint:#4E5A78;
+    --danger:#E8636A;
+    --success:#5FD98A;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif;background:var(--bg-deep);color:var(--text);
+    min-height:100vh;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:48px 24px 100px;}
+
+  .brand{display:flex;align-items:center;gap:12px;margin-bottom:36px;}
+  .brand-mark{
+    width:34px;height:34px;border-radius:8px;
+    background:linear-gradient(135deg,var(--copper),var(--copper-dim));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;color:#0B1120;
+  }
+  .brand-name{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:17px;}
+  .brand-name span{color:var(--copper);}
+
+  /* progress */
+  .progress-row{display:flex;align-items:center;gap:14px;margin-bottom:8px;}
+  .progress-track{flex:1;height:6px;background:var(--bg-card);border-radius:4px;overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--copper));border-radius:4px;transition:width .35s ease;width:20%;}
+  .progress-label{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--text-muted);white-space:nowrap;}
+  .step-names{display:flex;justify-content:space-between;margin-bottom:36px;}
+  .step-names span{font-size:11px;color:var(--text-faint);font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+  .step-names span.done{color:var(--teal);}
+  .step-names span.current{color:var(--copper);}
+
+  /* card */
+  .card{background:var(--bg-panel);border:1px solid var(--line);border-radius:16px;padding:32px;}
+  .card h2{font-family:'Space Grotesk',sans-serif;font-size:22px;font-weight:600;margin-bottom:6px;}
+  .card .step-sub{font-size:13px;color:var(--text-muted);margin-bottom:28px;}
+
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .field{margin-bottom:18px;}
+  .field.full{grid-column:1/-1;}
+  .field label{
+    display:block;font-size:11.5px;font-weight:600;letter-spacing:.02em;color:var(--text-muted);
+    margin-bottom:7px;text-transform:uppercase;
+  }
+  .field input, .field select{
+    width:100%;background:var(--bg-card);border:1px solid var(--line);border-radius:9px;
+    padding:11px 13px;font-family:'Inter',sans-serif;font-size:14px;color:var(--text);outline:none;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .field input::placeholder{color:var(--text-faint);}
+  .field input:focus, .field select:focus{
+    border-color:var(--copper);box-shadow:0 0 0 3px rgba(232,147,74,0.15);
+  }
+  .field-hint{font-size:11.5px;color:var(--text-faint);margin-top:6px;}
+  .field select{appearance:none;cursor:pointer;}
+
+  .unit-input{position:relative;}
+  .unit-input input{padding-right:44px;}
+  .unit-input .unit-tag{
+    position:absolute;right:12px;top:50%;transform:translateY(-50%);
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--text-faint);pointer-events:none;
+  }
+
+  .step-actions{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-top:8px;padding-top:24px;border-top:1px solid var(--line);
+  }
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:10px;
+    font-weight:700;font-size:13.5px;cursor:pointer;border:1px solid var(--line);
+    background:var(--bg-card);color:var(--text);transition:all .15s ease;
+  }
+  .btn:hover{border-color:var(--copper-dim);}
+  .btn-primary{background:var(--copper);border-color:var(--copper);color:#12161f;}
+  .btn-primary:hover{background:#F0A263;}
+  .btn-primary:disabled{opacity:.6;cursor:not-allowed;}
+  .btn svg{width:14px;height:14px;}
+  .btn-ghost{background:transparent;border-color:transparent;color:var(--text-muted);}
+  .btn-ghost:hover{color:var(--text);border-color:transparent;}
+
+  .step{display:none;}
+  .step.active{display:block;animation:fadeSlide .3s ease;}
+  @keyframes fadeSlide{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  /* review summary (step 5) */
+  .review-groups{display:flex;flex-direction:column;gap:16px;margin-bottom:8px;}
+  .review-group{background:var(--bg-card);border:1px solid var(--line);border-radius:11px;padding:16px 18px;}
+  .review-group h4{
+    font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;margin-bottom:10px;
+    display:flex;align-items:center;gap:8px;color:var(--copper);
+  }
+  .review-row{display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;}
+  .review-row .k{color:var(--text-muted);}
+  .review-row .v{font-family:'IBM Plex Mono',monospace;color:var(--text);}
+
+  .toast{
+    position:fixed;bottom:24px;right:24px;background:var(--bg-card);border:1px solid var(--line);
+    border-radius:10px;padding:12px 16px;font-size:13px;display:flex;align-items:center;gap:10px;
+    transform:translateY(20px);opacity:0;pointer-events:none;transition:all .25s ease;z-index:100;
+    box-shadow:0 10px 30px rgba(0,0,0,0.4);
+  }
+  .toast.show{transform:translateY(0);opacity:1;}
+  .toast .dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex-shrink:0;}
+  .toast.error .dot{background:var(--danger);}
+
+  .spinner{
+    width:14px;height:14px;border:2px solid rgba(18,22,31,0.3);border-top-color:#12161f;
+    border-radius:50%;animation:spin .7s linear infinite;display:none;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .btn-primary.loading .spinner{display:inline-block;}
+
+  @media (max-width:560px){
+    .field-grid{grid-template-columns:1fr;}
+    .card{padding:24px 18px;}
+    .step-names span{font-size:0;}
+  }
+</style>
 </head>
 <body>
-    <div class="container mx-auto px-4 py-8">
-        <!-- Header -->
-        <header class="text-center mb-8">
-            <h1 class="text-4xl font-bold text-white mb-2">EcoGrid System Setup</h1>
-            <p class="text-xl text-gray-200">Configure your renewable energy system</p>
-        </header>
+<div class="wrap">
+  <div class="brand">
+    <div class="brand-mark">E</div>
+    <div class="brand-name">EcoGrid<span>AI</span></div>
+  </div>
 
-        <!-- Quick Actions -->
-        <div class="max-w-2xl mx-auto mb-6">
-            <div class="flex gap-4 justify-center">
-                <!-- No quick action buttons - parameters contain sample data by default -->
-            </div>
-        </div>
+  <div class="progress-row">
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="stepIndicator">Step 1 of 5</div>
+  </div>
+  <div class="step-names">
+    <span id="sn1" class="current">Location</span>
+    <span id="sn2">Solar</span>
+    <span id="sn3">Wind</span>
+    <span id="sn4">Battery</span>
+    <span id="sn5">Review</span>
+  </div>
 
-        <!-- Progress Bar -->
-        <div class="max-w-2xl mx-auto mb-8">
-            <div class="flex justify-between items-center">
-                <div class="flex-1">
-                    <div class="h-2 bg-gray-300 rounded-full">
-                        <div id="progress-bar" class="h-2 bg-blue-500 rounded-full transition-all duration-300" style="width: 20%"></div>
-                    </div>
-                </div>
-                <span id="step-indicator" class="ml-4 text-white font-semibold">Step 1 of 5</span>
-            </div>
-        </div>
+  <div class="card">
 
-        <!-- Step 1: Location Parameters -->
-        <div id="step1" class="max-w-2xl mx-auto">
-            <div class="glass-effect rounded-xl p-8 text-white">
-                <h2 class="text-2xl font-bold mb-6">Location Parameters</h2>
-                
-                <!-- Location Map Button -->
-                <div class="mb-6 text-center">
-                    <button onclick="showMap()" class="bg-green-500 hover:bg-green-600 px-8 py-3 rounded-lg font-semibold transition-colors text-white text-lg">
-                        Select Location on Map
-                    </button>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Latitude</label>
-                        <select id="latitude" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="">Select Location</option>
-                            <option value="13.0717">Chennai, India (13.07N)</option>
-                            <option value="28.6139" selected>New Delhi, India (28.61N)</option>
-                            <option value="19.0760">Mumbai, India (19.08N)</option>
-                            <option value="12.9716">Bangalore, India (12.97N)</option>
-                            <option value="22.5726">Kolkata, India (22.57N)</option>
-                            <option value="17.3850">Hyderabad, India (17.39N)</option>
-                            <option value="26.9124">Pune, India (26.91N)</option>
-                            <option value="custom">Custom Latitude</option>
-                        </select>
-                        <input id="latitude-custom" type="number" step="0.0001" placeholder="Enter custom latitude" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white mt-2 hidden">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Longitude</label>
-                        <select id="longitude" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="">Select Location</option>
-                            <option value="80.1994">Chennai, India (80.20E)</option>
-                            <option value="77.2090" selected>New Delhi, India (77.21E)</option>
-                            <option value="72.8777">Mumbai, India (72.88E)</option>
-                            <option value="77.5946">Bangalore, India (77.59E)</option>
-                            <option value="88.3639">Kolkata, India (88.36E)</option>
-                            <option value="78.4867">Hyderabad, India (78.49E)</option>
-                            <option value="73.8563">Pune, India (73.86E)</option>
-                            <option value="custom">Custom Longitude</option>
-                        </select>
-                        <input id="longitude-custom" type="number" step="0.0001" placeholder="Enter custom longitude" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white mt-2 hidden">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Altitude (meters)</label>
-                        <select id="altitude" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="">Select Altitude</option>
-                            <option value="6.7">Chennai (6.7m)</option>
-                            <option value="216" selected>New Delhi (216m)</option>
-                            <option value="14">Mumbai (14m)</option>
-                            <option value="920">Bangalore (920m)</option>
-                            <option value="9">Kolkata (9m)</option>
-                            <option value="505">Hyderabad (505m)</option>
-                            <option value="560">Pune (560m)</option>
-                            <option value="custom">Custom Altitude</option>
-                        </select>
-                        <input id="altitude-custom" type="number" placeholder="Enter custom altitude" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white mt-2 hidden">
-                    </div>
-                    
-                    <!-- Map Container -->
-                    <div class="md:col-span-2">
-                        <div id="map-container" class="hidden">
-                            <label class="block text-sm font-medium mb-2">Select Location on Map</label>
-                            <div id="map"></div>
-                            <div class="mt-2 flex gap-2">
-                                <button onclick="confirmMapLocation()" class="bg-green-500 hover:bg-green-600 px-4 py-2 rounded-lg text-white font-semibold transition-colors">
-                                    Confirm Location
-                                </button>
-                                <button onclick="hideMap()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-white font-semibold transition-colors">
-                                    Cancel
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Installation Type</label>
-                        <select id="installation_type" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="urban">Urban</option>
-                            <option value="rural">Rural</option>
-                            <option value="coastal">Coastal</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Terrain Type</label>
-                        <select id="terrain_type" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="flat">Flat</option>
-                            <option value="hill">Hill</option>
-                            <option value="rooftop">Rooftop</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <button onclick="nextStep(2)" class="mt-6 bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg font-semibold transition-colors">
-                    Next Step
-                </button>
-            </div>
-        </div>
+    <!-- STEP 1: LOCATION -->
+    <div class="step active" id="step1">
+      <h2>Where's your site?</h2>
+      <p class="step-sub">Used to fetch real weather history for your forecast.</p>
 
-        <!-- Step 2: Solar System -->
-        <div id="step2" class="max-w-2xl mx-auto hidden">
-            <div class="glass-effect rounded-xl p-8 text-white">
-                <h2 class="text-2xl font-bold mb-6">Solar System</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Panel Model</label>
-                        <select id="panel_model" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="monocrystalline">Monocrystalline</option>
-                            <option value="polycrystalline">Polycrystalline</option>
-                            <option value="thin_film">Thin Film</option>
-                            <option value="bifacial">Bifacial</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Number of Panels</label>
-                        <input type="number" id="panel_count" value="20" placeholder="e.g., 20" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Panel Power (Watts)</label>
-                        <select id="panel_power" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="250">250W</option>
-                            <option value="300">300W</option>
-                            <option value="350">350W</option>
-                            <option value="400" selected>400W</option>
-                            <option value="450">450W</option>
-                            <option value="500">500W</option>
-                            <option value="550">550W</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Panel Efficiency (%)</label>
-                        <select id="panel_efficiency" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="15">15%</option>
-                            <option value="17">17%</option>
-                            <option value="19">19%</option>
-                            <option value="20" selected>20%</option>
-                            <option value="22">22%</option>
-                            <option value="23">23%</option>
-                            <option value="24">24%</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Tilt Angle (degrees)</label>
-                        <input type="number" id="tilt_angle" value="30" placeholder="e.g., 30" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Azimuth Angle (degrees)</label>
-                        <input type="number" id="azimuth_angle" value="180" placeholder="e.g., 180" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Installation Type</label>
-                        <select id="solar_installation" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="fixed" selected>Fixed</option>
-                            <option value="tracking_single">Single Axis Tracking</option>
-                            <option value="tracking_dual">Dual Axis Tracking</option>
-                            <option value="adjustable">Adjustable</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Inverter Efficiency (%)</label>
-                        <select id="inverter_efficiency" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="90">90%</option>
-                            <option value="92">92%</option>
-                            <option value="94">94%</option>
-                            <option value="95" selected>95%</option>
-                            <option value="96">96%</option>
-                            <option value="97">97%</option>
-                            <option value="98">98%</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">System Loss (%)</label>
-                        <select id="system_loss" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="5">5%</option>
-                            <option value="8">8%</option>
-                            <option value="10" selected>10%</option>
-                            <option value="12">12%</option>
-                            <option value="15">15%</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Shading Factor (%)</label>
-                        <select id="shading_factor" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="0">No Shading</option>
-                            <option value="5">5%</option>
-                            <option value="10" selected>10%</option>
-                            <option value="15">15%</option>
-                            <option value="20">20%</option>
-                            <option value="25">25%</option>
-                            <option value="30">30%</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="flex gap-4 mt-6">
-                    <button onclick="nextStep(1)" class="bg-gray-500 hover:bg-gray-600 px-6 py-3 rounded-lg font-semibold transition-colors">
-                        Previous
-                    </button>
-                    <button onclick="nextStep(3)" class="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg font-semibold transition-colors">
-                        Next Step
-                    </button>
-                </div>
-            </div>
+      <div class="field-grid">
+        <div class="field">
+          <label for="latitude">Latitude</label>
+          <input type="number" id="latitude" step="0.0001" placeholder="28.6139" value="28.6139">
         </div>
+        <div class="field">
+          <label for="longitude">Longitude</label>
+          <input type="number" id="longitude" step="0.0001" placeholder="77.2090" value="77.2090">
+        </div>
+        <div class="field">
+          <label for="altitude">Altitude</label>
+          <div class="unit-input">
+            <input type="number" id="altitude" placeholder="216" value="216">
+            <span class="unit-tag">m</span>
+          </div>
+        </div>
+        <div class="field">
+          <label for="installation_type">Installation type</label>
+          <select id="installation_type">
+            <option value="rooftop">Rooftop</option>
+            <option value="ground">Ground-mounted</option>
+            <option value="floating">Floating</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label for="terrain_type">Terrain</label>
+          <select id="terrain_type">
+            <option value="urban">Urban</option>
+            <option value="rural">Rural</option>
+            <option value="coastal">Coastal</option>
+            <option value="mountain">Mountain</option>
+          </select>
+        </div>
+      </div>
 
-        <!-- Step 3: Wind System -->
-        <div id="step3" class="max-w-2xl mx-auto hidden">
-            <div class="glass-effect rounded-xl p-8 text-white">
-                <h2 class="text-2xl font-bold mb-6">Wind System</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Turbine Model</label>
-                        <select id="turbine_model" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="small_hawt" selected>Small HAWT</option>
-                            <option value="medium_hawt">Medium HAWT</option>
-                            <option value="large_hawt">Large HAWT</option>
-                            <option value="vawt">VAWT</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Number of Turbines</label>
-                        <input type="number" id="turbine_count" value="2" placeholder="e.g., 2" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Rated Power (Watts)</label>
-                        <select id="rated_power" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="1000">1kW</option>
-                            <option value="2000">2kW</option>
-                            <option value="3000">3kW</option>
-                            <option value="5000" selected>5kW</option>
-                            <option value="10000">10kW</option>
-                            <option value="20000">20kW</option>
-                            <option value="50000">50kW</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Cut-in Speed (m/s)</label>
-                        <input type="number" id="cut_in_speed" value="3" placeholder="e.g., 3" step="0.1" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Cut-out Speed (m/s)</label>
-                        <input type="number" id="cut_out_speed" value="25" placeholder="e.g., 25" step="0.1" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Hub Height (meters)</label>
-                        <input type="number" id="hub_height" value="30" placeholder="e.g., 30" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Rotor Diameter (meters)</label>
-                        <input type="number" id="rotor_diameter" value="10" placeholder="e.g., 10" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Turbine Efficiency (%)</label>
-                        <input type="number" id="turbine_efficiency" value="35" placeholder="e.g., 35" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                    </div>
-                </div>
-                
-                <div class="flex gap-4 mt-6">
-                    <button onclick="nextStep(2)" class="bg-gray-500 hover:bg-gray-600 px-6 py-3 rounded-lg font-semibold transition-colors">
-                        Previous
-                    </button>
-                    <button onclick="nextStep(4)" class="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg font-semibold transition-colors">
-                        Next Step
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Step 4: Battery System -->
-        <div id="step4" class="max-w-2xl mx-auto hidden">
-            <div class="glass-effect rounded-xl p-8 text-white">
-                <h2 class="text-2xl font-bold mb-6">Battery System</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Battery Capacity (kWh)</label>
-                        <input type="number" id="battery_capacity" placeholder="e.g., 10" step="0.1" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Battery Voltage (V)</label>
-                        <select id="battery_voltage" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="12">12V</option>
-                            <option value="24">24V</option>
-                            <option value="48">48V</option>
-                            <option value="96">96V</option>
-                            <option value="120">120V</option>
-                            <option value="240">240V</option>
-                            <option value="400">400V</option>
-                            <option value="800">800V</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Charge Efficiency (%)</label>
-                        <select id="charge_efficiency" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="85">85%</option>
-                            <option value="90">90%</option>
-                            <option value="92">92%</option>
-                            <option value="94">94%</option>
-                            <option value="95">95%</option>
-                            <option value="96">96%</option>
-                            <option value="97">97%</option>
-                            <option value="98">98%</option>
-                            <option value="99">99%</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Discharge Efficiency (%)</label>
-                        <select id="discharge_efficiency" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="85">85%</option>
-                            <option value="90">90%</option>
-                            <option value="92">92%</option>
-                            <option value="94">94%</option>
-                            <option value="95">95%</option>
-                            <option value="96">96%</option>
-                            <option value="97">97%</option>
-                            <option value="98">98%</option>
-                            <option value="99">99%</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Max Discharge Rate (kW)</label>
-                        <input type="number" id="max_discharge_rate" placeholder="e.g., 5" step="0.1" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                    </div>
-                </div>
-                
-                <div class="flex gap-4 mt-6">
-                    <button onclick="nextStep(3)" class="bg-gray-500 hover:bg-gray-600 px-6 py-3 rounded-lg font-semibold transition-colors">
-                        Previous
-                    </button>
-                    <button onclick="nextStep(5)" class="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-lg font-semibold transition-colors">
-                        Next Step
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Step 5: Energy Consumption -->
-        <div id="step5" class="max-w-2xl mx-auto hidden">
-            <div class="glass-effect rounded-xl p-8 text-white">
-                <h2 class="text-2xl font-bold mb-6">Energy Consumption</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Daily Energy Usage (kWh)</label>
-                        <input type="number" id="daily_energy_usage" placeholder="e.g., 30" step="0.1" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Peak Load (kW)</label>
-                        <select id="peak_load" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="1">1 kW</option>
-                            <option value="2">2 kW</option>
-                            <option value="3">3 kW</option>
-                            <option value="5">5 kW</option>
-                            <option value="10">10 kW</option>
-                            <option value="15">15 kW</option>
-                            <option value="20">20 kW</option>
-                            <option value="25">25 kW</option>
-                            <option value="50">50 kW</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Critical Load (kW)</label>
-                        <select id="critical_load" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="1">1 kW</option>
-                            <option value="2">2 kW</option>
-                            <option value="3">3 kW</option>
-                            <option value="5">5 kW</option>
-                            <option value="10">10 kW</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-sm font-medium mb-2">Load Profile Type</label>
-                        <select id="load_profile_type" class="w-full bg-white/20 border border-white/30 rounded-lg px-4 py-2 text-white">
-                            <option value="residential">Residential</option>
-                            <option value="industrial">Industrial</option>
-                            <option value="commercial">Commercial</option>
-                            <option value="agricultural">Agricultural</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="flex gap-4 mt-6">
-                    <button onclick="nextStep(4)" class="bg-gray-500 hover:bg-gray-600 px-6 py-3 rounded-lg font-semibold transition-colors">
-                        Previous
-                    </button>
-                    <button onclick="submitSetup()" class="bg-green-500 hover:bg-green-600 px-6 py-3 rounded-lg font-semibold transition-colors">
-                        Generate Forecast
-                    </button>
-                </div>
-            </div>
-        </div>
+      <div class="step-actions">
+        <span></span>
+        <button class="btn btn-primary" onclick="nextStep(2)">Continue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+      </div>
     </div>
 
-    <script src="script.js"></script>
-    <script>
-        // Handle custom input fields
-        document.getElementById('latitude').addEventListener('change', function() {
-            const customInput = document.getElementById('latitude-custom');
-            if (this.value === 'custom') {
-                customInput.classList.remove('hidden');
-            } else {
-                customInput.classList.add('hidden');
-                customInput.value = '';
-            }
-        });
+    <!-- STEP 2: SOLAR -->
+    <div class="step" id="step2">
+      <h2>Solar array</h2>
+      <p class="step-sub">Your panel setup — defaults are pre-filled if you're not sure yet.</p>
 
-        document.getElementById('longitude').addEventListener('change', function() {
-            const customInput = document.getElementById('longitude-custom');
-            if (this.value === 'custom') {
-                customInput.classList.remove('hidden');
-            } else {
-                customInput.classList.add('hidden');
-                customInput.value = '';
-            }
-        });
+      <div class="field-grid">
+        <div class="field full">
+          <label for="panel_model">Panel model</label>
+          <input type="text" id="panel_model" placeholder="Jinko 550W" value="Jinko 550W">
+        </div>
+        <div class="field">
+          <label for="panel_count">Panel count</label>
+          <input type="number" id="panel_count" value="20">
+        </div>
+        <div class="field">
+          <label for="panel_power">Power per panel</label>
+          <div class="unit-input"><input type="number" id="panel_power" value="550"><span class="unit-tag">W</span></div>
+        </div>
+        <div class="field">
+          <label for="panel_efficiency">Efficiency</label>
+          <div class="unit-input"><input type="number" id="panel_efficiency" value="20"><span class="unit-tag">%</span></div>
+        </div>
+        <div class="field">
+          <label for="tilt_angle">Tilt angle</label>
+          <div class="unit-input"><input type="number" id="tilt_angle" value="25"><span class="unit-tag">&deg;</span></div>
+        </div>
+        <div class="field">
+          <label for="azimuth_angle">Azimuth angle</label>
+          <div class="unit-input"><input type="number" id="azimuth_angle" value="180"><span class="unit-tag">&deg;</span></div>
+        </div>
+        <div class="field">
+          <label for="solar_installation_type">Mount type</label>
+          <select id="solar_installation_type">
+            <option value="fixed">Fixed</option>
+            <option value="tracking">Tracking</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="inverter_efficiency">Inverter efficiency</label>
+          <div class="unit-input"><input type="number" id="inverter_efficiency" value="96"><span class="unit-tag">%</span></div>
+        </div>
+        <div class="field">
+          <label for="system_loss">System loss</label>
+          <div class="unit-input"><input type="number" id="system_loss" value="10"><span class="unit-tag">%</span></div>
+        </div>
+        <div class="field">
+          <label for="shading_factor">Shading factor</label>
+          <div class="unit-input"><input type="number" id="shading_factor" value="5"><span class="unit-tag">%</span></div>
+        </div>
+      </div>
 
-        document.getElementById('altitude').addEventListener('change', function() {
-            const customInput = document.getElementById('altitude-custom');
-            if (this.value === 'custom') {
-                customInput.classList.remove('hidden');
-            } else {
-                customInput.classList.add('hidden');
-                customInput.value = '';
-            }
-        });
+      <div class="step-actions">
+        <button class="btn" onclick="nextStep(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M11 5l-7 7 7 7"/></svg> Back</button>
+        <button class="btn btn-primary" onclick="nextStep(3)">Continue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+      </div>
+    </div>
 
-        // Map functionality
-        let map;
-        let marker;
+    <!-- STEP 3: WIND -->
+    <div class="step" id="step3">
+      <h2>Wind turbines</h2>
+      <p class="step-sub">Leave at defaults if you don't have wind generation — set count to 0.</p>
 
-        // Navigate between wizard steps. Every "Next"/"Back" button already
-        // calls nextStep(N) - this function itself was simply never written,
-        // which is why nothing past Step 1 ever worked.
-        const TOTAL_STEPS = 5;
+      <div class="field-grid">
+        <div class="field full">
+          <label for="turbine_model">Turbine model</label>
+          <input type="text" id="turbine_model" placeholder="Vestas V136" value="Vestas V136">
+        </div>
+        <div class="field">
+          <label for="turbine_count">Turbine count</label>
+          <input type="number" id="turbine_count" value="2">
+        </div>
+        <div class="field">
+          <label for="rated_power">Rated power</label>
+          <div class="unit-input"><input type="number" id="rated_power" value="5000"><span class="unit-tag">W</span></div>
+        </div>
+        <div class="field">
+          <label for="cut_in_speed">Cut-in speed</label>
+          <div class="unit-input"><input type="number" id="cut_in_speed" value="3"><span class="unit-tag">m/s</span></div>
+        </div>
+        <div class="field">
+          <label for="cut_out_speed">Cut-out speed</label>
+          <div class="unit-input"><input type="number" id="cut_out_speed" value="25"><span class="unit-tag">m/s</span></div>
+        </div>
+        <div class="field">
+          <label for="hub_height">Hub height</label>
+          <div class="unit-input"><input type="number" id="hub_height" value="80"><span class="unit-tag">m</span></div>
+        </div>
+        <div class="field">
+          <label for="rotor_diameter">Rotor diameter</label>
+          <div class="unit-input"><input type="number" id="rotor_diameter" value="136"><span class="unit-tag">m</span></div>
+        </div>
+        <div class="field full">
+          <label for="turbine_efficiency">Turbine efficiency</label>
+          <div class="unit-input"><input type="number" id="turbine_efficiency" value="35"><span class="unit-tag">%</span></div>
+        </div>
+      </div>
 
-        function nextStep(targetStep) {
-            if (targetStep < 1 || targetStep > TOTAL_STEPS) return;
+      <div class="step-actions">
+        <button class="btn" onclick="nextStep(2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M11 5l-7 7 7 7"/></svg> Back</button>
+        <button class="btn btn-primary" onclick="nextStep(4)">Continue <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+      </div>
+    </div>
 
-            for (let i = 1; i <= TOTAL_STEPS; i++) {
-                const stepEl = document.getElementById(`step${i}`);
-                if (stepEl) stepEl.classList.toggle('hidden', i !== targetStep);
-            }
+    <!-- STEP 4: BATTERY + CONSUMPTION -->
+    <div class="step" id="step4">
+      <h2>Battery & usage</h2>
+      <p class="step-sub">Storage capacity and how much power your site typically draws.</p>
 
-            const progressBar = document.getElementById('progress-bar');
-            const stepIndicator = document.getElementById('step-indicator');
-            if (progressBar) progressBar.style.width = `${(targetStep / TOTAL_STEPS) * 100}%`;
-            if (stepIndicator) stepIndicator.textContent = `Step ${targetStep} of ${TOTAL_STEPS}`;
+      <div class="field-grid">
+        <div class="field">
+          <label for="battery_capacity">Battery capacity</label>
+          <div class="unit-input"><input type="number" id="battery_capacity" value="100"><span class="unit-tag">kWh</span></div>
+        </div>
+        <div class="field">
+          <label for="battery_voltage">Battery voltage</label>
+          <div class="unit-input"><input type="number" id="battery_voltage" value="48"><span class="unit-tag">V</span></div>
+        </div>
+        <div class="field">
+          <label for="charge_efficiency">Charge efficiency</label>
+          <div class="unit-input"><input type="number" id="charge_efficiency" value="95"><span class="unit-tag">%</span></div>
+        </div>
+        <div class="field">
+          <label for="discharge_efficiency">Discharge efficiency</label>
+          <div class="unit-input"><input type="number" id="discharge_efficiency" value="95"><span class="unit-tag">%</span></div>
+        </div>
+        <div class="field full">
+          <label for="max_discharge_rate">Max discharge rate</label>
+          <div class="unit-input"><input type="number" id="max_discharge_rate" value="50"><span class="unit-tag">kW</span></div>
+        </div>
 
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
+        <div class="field">
+          <label for="daily_energy_usage">Daily energy usage</label>
+          <div class="unit-input"><input type="number" id="daily_energy_usage" value="30"><span class="unit-tag">kWh</span></div>
+        </div>
+        <div class="field">
+          <label for="peak_load">Peak load</label>
+          <div class="unit-input"><input type="number" id="peak_load" value="10"><span class="unit-tag">kW</span></div>
+        </div>
+        <div class="field">
+          <label for="critical_load">Critical load</label>
+          <div class="unit-input"><input type="number" id="critical_load" value="3"><span class="unit-tag">kW</span></div>
+        </div>
+        <div class="field">
+          <label for="load_profile_type">Load profile</label>
+          <select id="load_profile_type">
+            <option value="residential">Residential</option>
+            <option value="commercial">Commercial</option>
+            <option value="industrial">Industrial</option>
+            <option value="agricultural">Agricultural</option>
+          </select>
+        </div>
+      </div>
 
-        function showMap() {
-            document.getElementById('map-container').classList.remove('hidden');
-            if (!map) {
-                map = L.map('map').setView([20.5937, 78.9629], 5);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: 'OpenStreetMap contributors'
-                }).addTo(map);
+      <div class="step-actions">
+        <button class="btn" onclick="nextStep(3)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M11 5l-7 7 7 7"/></svg> Back</button>
+        <button class="btn btn-primary" onclick="nextStep(5)">Review <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+      </div>
+    </div>
 
-                const geocoder = L.Control.geocoder({
-                    defaultMarkGeocode: false,
-                    placeholder: 'Search for a location...',
-                    errorMessage: 'Nothing found.',
-                    showResultIcons: false,
-                    suggestMinLength: 3,
-                    suggestTimeout: 250,
-                    queryMinLength: 1
-                }).on('markgeocode', function(e) {
-                    const latlng = e.geocode.center;
-                    marker = L.marker(latlng).addTo(map);
-                    map.setView(latlng, 12);
-                }).addTo(map);
+    <!-- STEP 5: REVIEW -->
+    <div class="step" id="step5">
+      <h2>Review & confirm</h2>
+      <p class="step-sub">Check everything looks right before we save it and build your first forecast.</p>
 
-                map.on('click', function(e) {
-                    if (marker) {
-                        map.removeLayer(marker);
-                    }
-                    marker = L.marker(e.latlng).addTo(map);
-                });
-            }
-        }
+      <div class="review-groups" id="reviewGroups"></div>
 
-        function hideMap() {
-            document.getElementById('map-container').classList.add('hidden');
-        }
+      <div class="step-actions">
+        <button class="btn" onclick="nextStep(4)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M11 5l-7 7 7 7"/></svg> Back</button>
+        <button class="btn btn-primary" id="submitBtn" onclick="submitSetup()">
+          <span class="spinner"></span>
+          <span id="submitLabel">Save & generate forecast</span>
+        </button>
+      </div>
+    </div>
 
-        function confirmMapLocation() {
-            if (marker) {
-                const latlng = marker.getLatLng();
-                document.getElementById('latitude').value = 'custom';
-                document.getElementById('longitude').value = 'custom';
-                document.getElementById('latitude-custom').value = latlng.lat.toFixed(4);
-                document.getElementById('longitude-custom').value = latlng.lng.toFixed(4);
-                
-                // Show custom inputs
-                document.getElementById('latitude-custom').classList.remove('hidden');
-                document.getElementById('longitude-custom').classList.remove('hidden');
-                
-                hideMap();
-                showNotification('Location selected from map!', 'success');
-            } else {
-                showNotification('Please select a location on the map', 'error');
-            }
-        }
+  </div>
+</div>
 
-        function getAltitude() {
-            const lat = document.getElementById('latitude').value === 'custom' ? 
-                document.getElementById('latitude-custom').value : 
-                document.getElementById('latitude').value;
-            const lng = document.getElementById('longitude').value === 'custom' ? 
-                document.getElementById('longitude-custom').value : 
-                document.getElementById('longitude').value;
+<div class="toast" id="toast"><span class="dot"></span><span id="toastMsg"></span></div>
 
-            if (!lat || !lng) {
-                showNotification('Please select latitude and longitude first', 'error');
-                return;
-            }
+<script>
+  const TOTAL_STEPS = 5;
+  const stepNames = { 1:'sn1', 2:'sn2', 3:'sn3', 4:'sn4', 5:'sn5' };
 
-            // Using a simple elevation API (you may need to sign up for an API key)
-            fetch(`https://api.open-elevation.com/api/v1/lookup?locations=${lat},${lng}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.results && data.results.length > 0) {
-                        const altitude = data.results[0].elevation.toFixed(1);
-                        document.getElementById('altitude').value = 'custom';
-                        document.getElementById('altitude-custom').value = altitude;
-                        document.getElementById('altitude-custom').classList.remove('hidden');
-                        showNotification(`Altitude detected: ${altitude}m`, 'success');
-                    } else {
-                        showNotification('Could not fetch altitude data', 'error');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error fetching altitude:', error);
-                    showNotification('Error fetching altitude data', 'error');
-                });
-        }
+  function nextStep(target){
+    if(target < 1 || target > TOTAL_STEPS) return;
 
-        function showNotification(message, type) {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            document.body.appendChild(notification);
+    for(let i = 1; i <= TOTAL_STEPS; i++){
+      document.getElementById(`step${i}`).classList.toggle('active', i === target);
+      const label = document.getElementById(stepNames[i]);
+      label.classList.remove('current','done');
+      if(i < target) label.classList.add('done');
+      if(i === target) label.classList.add('current');
+    }
 
-            setTimeout(() => {
-                notification.remove();
-            }, 3000);
-        }
+    document.getElementById('progressFill').style.width = `${(target / TOTAL_STEPS) * 100}%`;
+    document.getElementById('stepIndicator').textContent = `Step ${target} of ${TOTAL_STEPS}`;
 
-        // Load existing setup when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            loadExistingSetup();
-            
-            // Initialize progress bar
-            const progressBar = document.getElementById("progress-bar");
-            const stepIndicator = document.getElementById("step-indicator");
-            
-            if(progressBar && stepIndicator) {
-                progressBar.style.width = "20%";
-                stepIndicator.textContent = "Step 1 of 5";
-            }
-        });
+    if(target === 5) buildReview();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
-        // Function to load existing setup data
-        function loadExistingSetup() {
-            try {
-                const savedData = sessionStorage.getItem('setupData');
-                if (savedData) {
-                    const configData = JSON.parse(savedData);
-                    populateForm(configData);
-                    console.log('Existing setup data loaded');
-                }
-            } catch (error) {
-                console.error('Error loading existing setup:', error);
-            }
-        }
+  function val(id){
+    const el = document.getElementById(id);
+    if(!el) return '';
+    return el.type === 'number' ? parseFloat(el.value) : el.value;
+  }
 
-        // Function to populate form with data
-        function populateForm(configData) {
-            try {
-                // Location data
-                if (configData.location) {
-                    const location = configData.location;
-                    if (location.latitude) {
-                        if (document.getElementById('latitude').querySelector(`option[value="${location.latitude}"]`)) {
-                            document.getElementById('latitude').value = location.latitude;
-                        } else {
-                            document.getElementById('latitude').value = 'custom';
-                            document.getElementById('latitude-custom').value = location.latitude;
-                            document.getElementById('latitude-custom').classList.remove('hidden');
-                        }
-                    }
-                    if (location.longitude) {
-                        if (document.getElementById('longitude').querySelector(`option[value="${location.longitude}"]`)) {
-                            document.getElementById('longitude').value = location.longitude;
-                        } else {
-                            document.getElementById('longitude').value = 'custom';
-                            document.getElementById('longitude-custom').value = location.longitude;
-                            document.getElementById('longitude-custom').classList.remove('hidden');
-                        }
-                    }
-                    if (location.altitude) {
-                        if (document.getElementById('altitude').querySelector(`option[value="${location.altitude}"]`)) {
-                            document.getElementById('altitude').value = location.altitude;
-                        } else {
-                            document.getElementById('altitude').value = 'custom';
-                            document.getElementById('altitude-custom').value = location.altitude;
-                            document.getElementById('altitude-custom').classList.remove('hidden');
-                        }
-                    }
-                    if (location.installation_type) document.getElementById('installation_type').value = location.installation_type;
-                    if (location.terrain_type) document.getElementById('terrain_type').value = location.terrain_type;
-                }
+  function collectConfig(){
+    return {
+      location: {
+        latitude: val('latitude'), longitude: val('longitude'), altitude: val('altitude'),
+        installation_type: val('installation_type'), terrain_type: val('terrain_type')
+      },
+      solar: {
+        panel_model: val('panel_model'), panel_count: val('panel_count'), panel_power: val('panel_power'),
+        panel_efficiency: val('panel_efficiency'), tilt_angle: val('tilt_angle'), azimuth_angle: val('azimuth_angle'),
+        installation_type: val('solar_installation_type'), inverter_efficiency: val('inverter_efficiency'),
+        system_loss: val('system_loss'), shading_factor: val('shading_factor')
+      },
+      wind: {
+        turbine_model: val('turbine_model'), turbine_count: val('turbine_count'), rated_power: val('rated_power'),
+        cut_in_speed: val('cut_in_speed'), cut_out_speed: val('cut_out_speed'), hub_height: val('hub_height'),
+        rotor_diameter: val('rotor_diameter'), turbine_efficiency: val('turbine_efficiency')
+      },
+      battery: {
+        battery_capacity: val('battery_capacity'), battery_voltage: val('battery_voltage'),
+        charge_efficiency: val('charge_efficiency'), discharge_efficiency: val('discharge_efficiency'),
+        max_discharge_rate: val('max_discharge_rate')
+      },
+      consumption: {
+        daily_energy_usage: val('daily_energy_usage'), peak_load: val('peak_load'),
+        critical_load: val('critical_load'), load_profile_type: val('load_profile_type')
+      }
+    };
+  }
 
-                // Solar data
-                if (configData.solar) {
-                    const solar = configData.solar;
-                    if (solar.panel_model) document.getElementById('panel_model').value = solar.panel_model;
-                    if (solar.panel_count) document.getElementById('panel_count').value = solar.panel_count;
-                    if (solar.panel_power) document.getElementById('panel_power').value = solar.panel_power;
-                    if (solar.panel_efficiency) document.getElementById('panel_efficiency').value = solar.panel_efficiency;
-                    if (solar.tilt_angle) document.getElementById('tilt_angle').value = solar.tilt_angle;
-                    if (solar.azimuth_angle) document.getElementById('azimuth_angle').value = solar.azimuth_angle;
-                    if (solar.installation_type) document.getElementById('solar_installation').value = solar.installation_type;
-                    if (solar.inverter_efficiency) document.getElementById('inverter_efficiency').value = solar.inverter_efficiency;
-                    if (solar.system_loss) document.getElementById('system_loss').value = solar.system_loss;
-                    if (solar.shading_factor) document.getElementById('shading_factor').value = solar.shading_factor;
-                }
+  function buildReview(){
+    const cfg = collectConfig();
+    const groups = [
+      ['Location', '&#128205;', [
+        ['Coordinates', `${cfg.location.latitude}, ${cfg.location.longitude}`],
+        ['Altitude', `${cfg.location.altitude} m`],
+        ['Install / terrain', `${cfg.location.installation_type} / ${cfg.location.terrain_type}`]
+      ]],
+      ['Solar', '&#9728;', [
+        ['Model', cfg.solar.panel_model],
+        ['Array', `${cfg.solar.panel_count} &times; ${cfg.solar.panel_power}W (${cfg.solar.panel_efficiency}% eff.)`],
+        ['Mount', `${cfg.solar.installation_type}, tilt ${cfg.solar.tilt_angle}&deg;`]
+      ]],
+      ['Wind', '&#128168;', [
+        ['Model', cfg.wind.turbine_model],
+        ['Turbines', `${cfg.wind.turbine_count} &times; ${cfg.wind.rated_power}W`],
+        ['Cut-in / out', `${cfg.wind.cut_in_speed} - ${cfg.wind.cut_out_speed} m/s`]
+      ]],
+      ['Battery & usage', '&#9889;', [
+        ['Capacity', `${cfg.battery.battery_capacity} kWh @ ${cfg.battery.battery_voltage}V`],
+        ['Daily usage', `${cfg.consumption.daily_energy_usage} kWh`],
+        ['Peak load', `${cfg.consumption.peak_load} kW (${cfg.consumption.load_profile_type})`]
+      ]]
+    ];
 
-                // Wind data
-                if (configData.wind) {
-                    const wind = configData.wind;
-                    if (wind.turbine_model) document.getElementById('turbine_model').value = wind.turbine_model;
-                    if (wind.turbine_count) document.getElementById('turbine_count').value = wind.turbine_count;
-                    if (wind.rated_power) document.getElementById('rated_power').value = wind.rated_power;
-                    if (wind.cut_in_speed) document.getElementById('cut_in_speed').value = wind.cut_in_speed;
-                    if (wind.cut_out_speed) document.getElementById('cut_out_speed').value = wind.cut_out_speed;
-                    if (wind.hub_height) document.getElementById('hub_height').value = wind.hub_height;
-                    if (wind.rotor_diameter) document.getElementById('rotor_diameter').value = wind.rotor_diameter;
-                    if (wind.turbine_efficiency) document.getElementById('turbine_efficiency').value = wind.turbine_efficiency;
-                }
+    document.getElementById('reviewGroups').innerHTML = groups.map(([title, icon, rows]) => `
+      <div class="review-group">
+        <h4>${icon} ${title}</h4>
+        ${rows.map(([k,v]) => `<div class="review-row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}
+      </div>
+    `).join('');
+  }
 
-                // Battery data
-                if (configData.battery) {
-                    const battery = configData.battery;
-                    if (battery.battery_capacity) document.getElementById('battery_capacity').value = battery.battery_capacity;
-                    if (battery.battery_voltage) document.getElementById('battery_voltage').value = battery.battery_voltage;
-                    if (battery.charge_efficiency) document.getElementById('charge_efficiency').value = battery.charge_efficiency;
-                    if (battery.discharge_efficiency) document.getElementById('discharge_efficiency').value = battery.discharge_efficiency;
-                    if (battery.max_discharge_rate) document.getElementById('max_discharge_rate').value = battery.max_discharge_rate;
-                }
+  async function submitSetup(){
+    const btn = document.getElementById('submitBtn');
+    btn.classList.add('loading');
+    btn.disabled = true;
+    document.getElementById('submitLabel').textContent = 'Saving…';
 
-                // Consumption data
-                if (configData.consumption) {
-                    const consumption = configData.consumption;
-                    if (consumption.daily_energy_usage) document.getElementById('daily_energy_usage').value = consumption.daily_energy_usage;
-                    if (consumption.peak_load) document.getElementById('peak_load').value = consumption.peak_load;
-                    if (consumption.critical_load) document.getElementById('critical_load').value = consumption.critical_load;
-                    if (consumption.load_profile_type) document.getElementById('load_profile_type').value = consumption.load_profile_type;
-                }
+    try{
+      const res = await fetch('/submit_setup', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(collectConfig())
+      });
+      const data = await res.json();
 
-                console.log('Form populated with existing data');
-            } catch (error) {
-                console.error('Error populating form:', error);
-            }
-        }
+      if(!res.ok || data.error){
+        showToast(data.error || 'Could not save setup', true);
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        document.getElementById('submitLabel').textContent = 'Save & generate forecast';
+        return;
+      }
 
-        // Function to load sample data
-        function loadSampleData() {
-            const sampleData = {
-                location: {
-                    latitude: "28.6139",
-                    longitude: "77.2090",
-                    altitude: "216",
-                    installation_type: "rooftop",
-                    terrain_type: "urban"
-                },
-                solar: {
-                    panel_model: "monocrystalline",
-                    panel_count: "20",
-                    panel_power: "400",
-                    panel_efficiency: "20",
-                    tilt_angle: "30",
-                    azimuth_angle: "180",
-                    installation_type: "fixed",
-                    inverter_efficiency: "95",
-                    system_loss: "10",
-                    shading_factor: "10"
-                },
-                wind: {
-                    turbine_model: "small_hawt",
-                    turbine_count: "2",
-                    rated_power: "5000",
-                    cut_in_speed: "3",
-                    cut_out_speed: "25",
-                    hub_height: "30",
-                    rotor_diameter: "10",
-                    turbine_efficiency: "35"
-                },
-                battery: {
-                    battery_capacity: "10",
-                    battery_voltage: "48",
-                    charge_efficiency: "95",
-                    discharge_efficiency: "95",
-                    max_discharge_rate: "5"
-                },
-                consumption: {
-                    daily_energy_usage: "30",
-                    peak_load: "5",
-                    critical_load: "2",
-                    load_profile_type: "residential"
-                }
-            };
+      showToast('Site saved — building your forecast');
+      setTimeout(() => { window.location.href = '/dashboard'; }, 700);
+    } catch(e){
+      showToast('Could not reach the server', true);
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      document.getElementById('submitLabel').textContent = 'Save & generate forecast';
+    }
+  }
 
-            populateForm(sampleData);
-            showNotification('Default data loaded! You can modify any settings before submitting.', 'success');
-        }
-    </script>
+  let toastTimer;
+  function showToast(msg, isError){
+    const toast = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    toast.classList.toggle('error', !!isError);
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
+  }
+</script>
 </body>
 </html>
