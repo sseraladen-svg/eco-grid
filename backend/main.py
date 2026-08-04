@@ -76,17 +76,10 @@ def dashboard():
     return send_from_directory(str(FRONTEND_DIR), "dashboard.html")
 
 
-@app.route("/forecasting")
-@login_required
-def forecasting():
-    """Serve the forecasting page"""
-    return send_from_directory(str(FRONTEND_DIR), "forecasting.html")
-
-
 @app.route("/multigrid")
 @login_required
-def multigrid():
-    """Serve the multigrid page"""
+def multigrid_page():
+    """Serve the Multi-Grid management page"""
     return send_from_directory(str(FRONTEND_DIR), "multigrid.html")
 
 
@@ -178,6 +171,7 @@ def get_user_profile():
         return jsonify({"error": f"Failed to get profile: {str(e)}"}), 500
 
 @app.route("/api/user/configurations")
+@login_required
 def get_user_configurations():
     """Get user's system configurations"""
     try:
@@ -265,6 +259,7 @@ def save_setup():
         return jsonify({"error": f"Failed to save setup: {str(e)}"}), 500
 
 @app.route("/api/setup/active")
+@login_required
 def get_active_setup():
     """Get user's active configuration"""
     try:
@@ -330,7 +325,12 @@ def get_sample_forecast():
             })
         
         print(f"Generated {len(forecast_data)} sample forecast records")
-        return jsonify(forecast_data)
+        # BUG FIX: same shape mismatch as /forecast - was returning a bare array.
+        return jsonify({
+            "status": "success",
+            "forecast": forecast_data,
+            "statistics": _physics_statistics(forecast_data)
+        })
         
     except Exception as e:
         print(f"Error generating sample forecast: {str(e)}")
@@ -338,75 +338,78 @@ def get_sample_forecast():
 
 
 @app.route("/forecast")
+@login_required
 def get_forecast():
-    """Get forecast data - works without authentication for demo"""
+    """Get forecast data for current user - FIXED VERSION"""
     try:
-        # Try to get user's active configuration if logged in
-        active_config = None
-        if current_user.is_authenticated:
-            active_config = SystemConfiguration.query.filter_by(
-                user_id=current_user.id, 
-                is_active=True
-            ).first()
+        # Get user's active configuration from database
+        active_config = SystemConfiguration.query.filter_by(
+            user_id=current_user.id, 
+            is_active=True
+        ).first()
         
         if not active_config:
-            # Generate demo forecast data without authentication
-            print("No active config found, generating demo forecast")
+            # Create a default configuration if none exists
+            print(f"No active config found for user {current_user.id}, creating default config")
             
-            # Generate 30-day demo forecast
-            dates = []
-            base_date = datetime.now()
-            for i in range(30):
-                dates.append((base_date + timedelta(days=i)).strftime('%Y-%m-%d'))
-            
-            forecast_data = []
-            for i, date in enumerate(dates):
-                # Demo solar generation - realistic positive values
-                # Use a simpler formula that always produces positive values
-                day_factor = 0.7 + 0.3 * math.sin(i * 0.2)  # Daily variation
-                solar_generation = 4.0 + 3.0 * day_factor + random.random() * 2
-                solar_generation = max(0.5, min(8.0, solar_generation))  # Clamp to realistic range
-                
-                # Demo wind generation - realistic values
-                wind_factor = 0.6 + 0.4 * math.sin(i * 0.15)
-                wind_generation = 2.0 + 2.5 * wind_factor + random.random() * 1.5
-                wind_generation = max(0.5, min(6.0, wind_generation))  # Clamp to realistic range
-                
-                # Demo demand - realistic values
-                demand_factor = 0.8 + 0.2 * math.sin(i * 0.25)
-                demand = 25.0 + 8.0 * demand_factor + random.random() * 3
-                demand = max(15.0, min(35.0, demand))  # Clamp to realistic range
-                
-                # Demo battery
-                total_generation = solar_generation + wind_generation
-                net_energy = total_generation - demand
-                battery_storage = max(0, min(80.0, net_energy * 0.8)) if net_energy > 0 else 0
-                
-                forecast_data.append({
-                    "date": date,
-                    "solar_energy": round(solar_generation, 2),
-                    "wind_energy": round(wind_generation, 2),
-                    "total_generation": round(total_generation, 2),
-                    "demand": round(demand, 2),
-                    "battery_storage": round(battery_storage, 2),
-                    "energy_export": round(max(0, net_energy * 0.8), 2) if net_energy > 0 else 0
-                })
-            
-            print(f"Generated {len(forecast_data)} demo forecast records")
-            return jsonify({
-                "status": "success",
-                "forecast": forecast_data,
-                "statistics": {
-                    "accuracy": 85.0,
-                    "trend_direction": "increasing",
-                    "volatility": 0.15,
-                    "peak_prediction": max(d["total_generation"] for d in forecast_data)
+            # Save a default configuration
+            default_config = {
+                "location": {
+                    "latitude": "28.6139",
+                    "longitude": "77.2090",
+                    "altitude": "216",
+                    "installation_type": "rooftop",
+                    "terrain_type": "urban"
+                },
+                "solar": {
+                    "panel_model": "monocrystalline",
+                    "panel_count": "20",
+                    "panel_power": "400",
+                    "panel_efficiency": "20",
+                    "tilt_angle": "30",
+                    "azimuth_angle": "180",
+                    "installation_type": "fixed",
+                    "inverter_efficiency": "95",
+                    "system_loss": "10",
+                    "shading_factor": "10"
+                },
+                "wind": {
+                    "turbine_model": "small_hawt",
+                    "turbine_count": "2",
+                    "rated_power": "5000",
+                    "cut_in_speed": "3",
+                    "cut_out_speed": "25",
+                    "hub_height": "30",
+                    "rotor_diameter": "10",
+                    "turbine_efficiency": "35"
+                },
+                "battery": {
+                    "battery_capacity": "10",
+                    "battery_voltage": "48",
+                    "charge_efficiency": "95",
+                    "discharge_efficiency": "95",
+                    "max_discharge_rate": "5"
+                },
+                "consumption": {
+                    "daily_energy_usage": "30",
+                    "peak_load": "5",
+                    "critical_load": "2",
+                    "load_profile_type": "residential"
                 }
-            })
-        
-        # If we have an active config, use the original logic
-        # Get the configuration data
-        config_data = json.loads(active_config.config_data)
+            }
+            
+            system_config = SystemConfiguration(
+                user_id=current_user.id,
+                name=f"Default Configuration {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+                config_data=json.dumps(default_config),
+                is_active=True
+            )
+            
+            db.session.add(system_config)
+            db.session.commit()
+            
+            print(f"Created default config for user {current_user.id}")
+            active_config = system_config
         
         # Check if forecast file exists
         file_path = DATA_DIR / "forecast_output.csv"
@@ -466,6 +469,12 @@ def get_forecast():
                 # Demand calculation based on usage profile
                 hour_factor = 0.6 + 0.4 * math.sin(i * 0.3)  # Daily variation
                 demand = daily_usage * hour_factor + peak_load * 0.2 * math.sin(i * 0.5)
+                # BUG FIX: the peak_load swing term could exceed the base usage term
+                # and push demand negative whenever peak_load was large relative to
+                # daily_energy_usage. A site's demand can never actually be negative,
+                # so floor it at a small fraction of baseline usage instead of 0 -
+                # 0 would look like the site draws no power at all, which isn't real either.
+                demand = max(daily_usage * 0.1, demand)
                 
                 # Battery storage calculation
                 total_generation = solar_generation + wind_generation
@@ -483,15 +492,16 @@ def get_forecast():
                 })
             
             print(f"Generated {len(forecast_data)} real forecast records based on user parameters")
+            # BUG FIX: this used to return a bare array (jsonify(forecast_data)).
+            # The documented API contract - and every frontend page - expects
+            # {"status": "success", "forecast": [...], "statistics": {...}}.
+            # Returning a bare array meant data.forecast was always undefined
+            # on the frontend, so charts/tables silently rendered nothing even
+            # though the backend had generated a full 30 days of data.
             return jsonify({
                 "status": "success",
                 "forecast": forecast_data,
-                "statistics": {
-                    "accuracy": 85.0,
-                    "trend_direction": "increasing",
-                    "volatility": 0.15,
-                    "peak_prediction": max(d["total_generation"] for d in forecast_data)
-                }
+                "statistics": _physics_statistics(forecast_data)
             })
         
         # Read actual forecast data if file exists
@@ -503,54 +513,50 @@ def get_forecast():
         return jsonify({
             "status": "success",
             "forecast": result,
-            "statistics": {
-                "accuracy": 85.0,
-                "trend_direction": "increasing",
-                "volatility": 0.15,
-                "peak_prediction": max(d.get("total_generation", 0) for d in result)
-            }
+            "statistics": _physics_statistics(result)
         })
         
     except Exception as e:
         print(f"Error in forecast endpoint: {str(e)}")
         return jsonify({"error": f"Failed to load forecast: {str(e)}"}), 500
 
-@app.route("/forecast/model/status")
-def get_model_status():
-    """Get the status of the AI forecast model - works without authentication"""
-    try:
-        # Try to get user's active configuration if logged in
-        active_config = None
-        if current_user.is_authenticated:
-            active_config = SystemConfiguration.query.filter_by(
-                user_id=current_user.id, 
-                is_active=True
-            ).first()
-        
-        if not active_config:
-            return jsonify({
-                "model": {
-                    "trained": False,
-                    "accuracy": 0,
-                    "trained_at": None
-                }
-            })
-        
-        # Check if model file exists for this configuration
-        model_path = ROOT_DIR / 'training' / f'prophet_model_{active_config.id}.pkl'
-        is_trained = model_path.exists()
-        
-        return jsonify({
-            "model": {
-                "trained": is_trained,
-                "accuracy": 85.0 if is_trained else 0,
-                "trained_at": None
-            }
-        })
-        
-    except Exception as e:
-        print(f"Error in get_model_status: {str(e)}")
-        return jsonify({"error": f"Failed to get model status: {str(e)}"}), 500
+
+def _physics_statistics(forecast_data):
+    """Same statistics shape as the Prophet blueprint (backend/forecast.py),
+    computed over the physics-simulated forecast instead of a trained model."""
+    if not forecast_data:
+        return {'total_solar': 0, 'total_wind': 0, 'average_daily': 0, 'peak_day': 0,
+                'trend_direction': '\u2192', 'volatility': 0.0, 'confidence': 0.0,
+                'seasonal_pattern': 'Insufficient data'}
+
+    total_values = [d['total_generation'] for d in forecast_data]
+    solar_values = [d['solar_energy'] for d in forecast_data]
+    wind_values = [d['wind_energy'] for d in forecast_data]
+
+    average_daily = sum(total_values) / len(total_values)
+    peak_day = max(total_values)
+
+    if len(total_values) >= 7:
+        first_week = sum(total_values[:7]) / 7
+        last_week = sum(total_values[-7:]) / 7
+        trend = '\u2191' if last_week > first_week * 1.05 else ('\u2193' if last_week < first_week * 0.95 else '\u2192')
+    else:
+        trend = '\u2192'
+
+    mean_val = average_daily
+    variance = sum((x - mean_val) ** 2 for x in total_values) / len(total_values) if total_values else 0
+    volatility = (variance ** 0.5 / mean_val * 100) if mean_val > 0 else 0.0
+
+    return {
+        'total_solar': round(sum(solar_values), 2),
+        'total_wind': round(sum(wind_values), 2),
+        'average_daily': round(average_daily, 2),
+        'peak_day': round(peak_day, 2),
+        'trend_direction': trend,
+        'volatility': round(volatility, 1),
+        'confidence': 70.0,  # physics simulation, not backtested - fixed moderate confidence
+        'seasonal_pattern': 'Simulated',
+    }
 
 
 # -----------------------------
@@ -560,268 +566,96 @@ def get_model_status():
 @app.route("/train_prophet", methods=["POST"])
 @login_required
 def train_prophet():
-    """Train Prophet AI model for energy forecasting"""
+    """Train Prophet AI model on real NASA POWER weather data for the
+    active configuration's location. This used to fail every time
+    (missing data/weather_data.csv) or silently use random fallback data;
+    now it fetches real weather and reports honest errors if it can't."""
+    active_config = SystemConfiguration.query.filter_by(
+        user_id=current_user.id, is_active=True
+    ).first()
+
+    if not active_config:
+        return jsonify({"error": "No active configuration found. Please complete setup first."}), 400
+
     try:
-        print("Starting Prophet model training...")
-        
-        # Get user's active configuration
-        active_config = SystemConfiguration.query.filter_by(
-            user_id=current_user.id, 
-            is_active=True
-        ).first()
-        
-        if not active_config:
-            return jsonify({"error": "No active configuration found. Please complete setup first."}), 400
-        
-        # Train the Prophet model
-        train_prophet_model()
-        
-        print("Prophet model training completed successfully")
-        return jsonify({
-            "status": "success", 
-            "message": "Prophet model trained successfully"
-        })
-        
+        config = json.loads(active_config.config_data)
+        location = config.get('location', {})
+        latitude = float(location.get('latitude', 28.6139))
+        longitude = float(location.get('longitude', 77.2090))
+    except (ValueError, TypeError, json.JSONDecodeError) as e:
+        return jsonify({"error": f"Invalid location in configuration: {e}"}), 400
+
+    config_dir = DATA_DIR / 'configs' / str(active_config.id)
+    weather_path = config_dir / "weather_data.csv"
+
+    try:
+        row_count = fetch_and_cache_weather(latitude, longitude, weather_path)
     except Exception as e:
-        print(f"Error training Prophet model: {str(e)}")
+        return jsonify({"error": f"Failed to fetch NASA weather data: {e}"}), 502
+
+    if row_count < 30:
+        return jsonify({"error": f"Only {row_count} days of weather data available - not enough to train on."}), 502
+
+    try:
+        result = train_prophet_model(weather_path, config_dir)
+    except Exception as e:
         return jsonify({"error": f"Failed to train model: {str(e)}"}), 500
 
-@app.route("/forecast_prophet", methods=["GET"])
-@login_required
-def forecast_prophet():
-    """Get Prophet AI forecast data with automatic training"""
-    try:
-        print("Generating Prophet forecast...")
-        
-        # Check if trained models exist, if not train automatically
-        solar_forecast_path = DATA_DIR / "solar_forecast.csv"
-        wind_forecast_path = DATA_DIR / "wind_forecast.csv"
-        
-        if not os.path.exists(solar_forecast_path) or not os.path.exists(wind_forecast_path):
-            print("No trained models found. Training Prophet AI automatically...")
-            try:
-                # Train the model automatically
-                train_prophet_model()
-                print("Prophet AI trained automatically!")
-                
-                # Now generate forecast with trained models
-                return generate_trained_prophet_forecast()
-            except Exception as e:
-                print(f"Auto-training failed: {e}")
-                print("Falling back to sample forecast...")
-                return generate_sample_prophet_forecast()
-        else:
-            print("Trained models found. Using trained forecast...")
-            return generate_trained_prophet_forecast()
-        
-    except Exception as e:
-        print(f"Error generating Prophet forecast: {str(e)}")
-        return generate_sample_prophet_forecast()
-
-def generate_trained_prophet_forecast():
-    """Generate forecast using trained Prophet models"""
-    try:
-        import pandas as pd
-        
-        # Read trained forecast data
-        solar_df = pd.read_csv(DATA_DIR / "solar_forecast.csv")
-        wind_df = pd.read_csv(DATA_DIR / "wind_forecast.csv")
-        
-        print(f"📊 Using trained models: Solar={len(solar_df)} records, Wind={len(wind_df)} records")
-        
-        # Combine forecasts and calculate statistics
-        forecast_data = []
-        for i in range(min(len(solar_df), len(wind_df), 30)):  # Max 30 days
-            # Ensure non-negative values
-            solar_val = max(0, float(solar_df.iloc[i]['yhat']) if 'yhat' in solar_df.columns else 0)
-            wind_val = max(0, float(wind_df.iloc[i]['yhat']) if 'yhat' in wind_df.columns else 0)
-            
-            forecast_data.append({
-                "date": solar_df.iloc[i]['ds'] if 'ds' in solar_df.columns else f"2024-01-{i+1:02d}",
-                "solar_energy": round(solar_val, 2),
-                "wind_energy": round(wind_val, 2),
-                "total_generation": round(solar_val + wind_val, 2),
-                "demand": round(30 + (i % 10) * 2, 2),
-                "battery_storage": round(50 + (i % 20) * 2, 2)
-            })
-        
-        # Calculate Prophet AI statistics
-        stats = calculate_prophet_statistics(forecast_data)
-        
-        # Add model_type to statistics
-        stats['model_type'] = 'trained'
-        
-        result = {
-            "forecast": forecast_data,
-            "statistics": stats
-        }
-        
-        print(f"Generated trained forecast: {len(result['forecast'])} records")
-        print(f"Statistics: {result['statistics']}")
-        print(f"Result structure: {list(result.keys())}")
-        print(f"Statistics structure: {list(stats.keys())}")
-        print(f"About to send JSON response:")
-        print(f"Forecast sample: {result['forecast'][0] if result['forecast'] else 'None'}")
-        print(f"Statistics sample: {result['statistics']}")
-        print(f"Full JSON being sent: {json.dumps(result, indent=2)[:1000]}...")
-        
-        return jsonify(result)
-        
-    except Exception as e:
-        print(f"Error using trained models: {e}")
-        print("Falling back to sample forecast...")
-        return generate_sample_prophet_forecast()
-
-def generate_sample_prophet_forecast():
-    """Generate sample Prophet forecast with proper format"""
-    print("Generating sample Prophet forecast...")
-    
-    from datetime import datetime, timedelta
-    import random
-    import json
-    
-    forecast_data = []
-    base_date = datetime.now()
-    
-    for i in range(30):
-        current_date = base_date + timedelta(days=i)
-        
-        # Generate realistic sample data with some variation
-        solar_base = 25 + 10 * abs(0.5 - random.random())  # 15-35 kWh
-        wind_base = 15 + 8 * abs(0.5 - random.random())   # 7-23 kWh
-        
-        solar_val = round(solar_base, 2)
-        wind_val = round(wind_base, 2)
-        
-        forecast_data.append({
-            "date": current_date.strftime('%Y-%m-%d'),
-            "solar_energy": solar_val,
-            "wind_energy": wind_val,
-            "total_generation": round(solar_val + wind_val, 2),
-            "demand": round(30 + (i % 8) * 2, 2),
-            "battery_storage": round(50 + (i % 15) * 3, 2)
-        })
-    
-    stats = calculate_prophet_statistics(forecast_data)
-    
-    result = {
-        "forecast": forecast_data,
-        "statistics": stats
+    meta = {
+        "trained": True,
+        "accuracy": result["accuracy"],
+        "data_points": result["data_points"],
+        "trained_at": datetime.now().isoformat(),
     }
-    
-    print(f"Generated Prophet forecast: {len(result['forecast'])} records")
-    print(f"Statistics: {result['statistics']}")
-    print(f"Result structure: {list(result.keys())}")
-    print(f"Forecast sample: {json.dumps(result['forecast'][0], indent=2)}")
-    print(f"Full result JSON: {json.dumps(result, indent=2)[:500]}...")
-    
-    return jsonify(result)
+    (config_dir / "model_meta.json").write_text(json.dumps(meta))
 
-def calculate_prophet_statistics(forecast_data):
-    """Calculate Prophet AI statistics from forecast data"""
-    if not forecast_data:
-        return {
-            "accuracy": 0,
-            "trend_direction": "→",
-            "volatility": 0,
-            "peak_prediction": 0
-        }
-    
-    # Extract total generation values
-    generation_values = [item["total_generation"] for item in forecast_data]
-    
-    # Calculate accuracy (based on consistency)
-    if len(generation_values) > 1:
-        mean_val = sum(generation_values) / len(generation_values)
-        variance = sum((x - mean_val) ** 2 for x in generation_values) / len(generation_values)
-        accuracy = max(0, min(100, 100 - (variance / mean_val * 100) if mean_val > 0 else 0))
-    else:
-        accuracy = 85  # Default accuracy
-    
-    # Calculate trend direction
-    if len(generation_values) >= 7:
-        first_week = sum(generation_values[:7]) / 7
-        last_week = sum(generation_values[-7:]) / 7
-        
-        if last_week > first_week * 1.05:
-            trend = "↑"
-        elif last_week < first_week * 0.95:
-            trend = "↓"
-        else:
-            trend = "→"
-    else:
-        trend = "→"
-    
-    # Calculate volatility (coefficient of variation)
-    if len(generation_values) > 1:
-        mean_val = sum(generation_values) / len(generation_values)
-        std_dev = (sum((x - mean_val) ** 2 for x in generation_values) / len(generation_values)) ** 0.5
-        volatility = (std_dev / mean_val * 100) if mean_val > 0 else 0
-        volatility = round(volatility, 1)
-    else:
-        volatility = 15.0
-    
-    # Find peak prediction
-    peak_prediction = max(generation_values) if generation_values else 0
-    
-    return {
-        "accuracy": round(accuracy, 1),
-        "trend_direction": trend,
-        "volatility": volatility,
-        "peak_prediction": round(peak_prediction, 2)
-    }
+    return jsonify({
+        "status": "success",
+        "message": "Prophet model trained on real NASA POWER weather history",
+        "model": meta,
+    })
+
 
 @app.route("/nasa_data", methods=["GET"])
 @login_required
 def get_nasa_data():
-    """Get NASA solar data for reference"""
+    """Return recent NASA POWER solar/wind data for the active configuration's
+    location. Previously this always returned [] because nothing fetched
+    the data; now it fetches (and caches) from the real API."""
+    active_config = SystemConfiguration.query.filter_by(
+        user_id=current_user.id, is_active=True
+    ).first()
+    if not active_config:
+        return jsonify([])
+
     try:
-        # Get active configuration
-        active_config = SystemConfiguration.query.filter_by(
-            user_id=current_user.id, is_active=True
-        ).first()
-        
-        if not active_config:
-            return jsonify([])  # Return empty array if no active config
-        
-        config_data = json.loads(active_config.config_data)
-        location = config_data.get('location', {})
+        config = json.loads(active_config.config_data)
+        location = config.get('location', {})
         latitude = float(location.get('latitude', 28.6139))
         longitude = float(location.get('longitude', 77.2090))
-        
-        # Try to fetch and cache weather data
-        weather_data_path = DATA_DIR / f"weather_{active_config.id}.csv"
-        
-        if not weather_data_path.exists():
-            try:
-                fetch_and_cache_weather(latitude, longitude, weather_data_path)
-            except Exception as e:
-                print(f"Error fetching weather data: {str(e)}")
-                return jsonify([])
-        
-        # Read weather data
+    except (ValueError, TypeError, json.JSONDecodeError):
+        return jsonify([])
+
+    config_dir = DATA_DIR / 'configs' / str(active_config.id)
+    weather_path = config_dir / "weather_data.csv"
+
+    try:
         import pandas as pd
-        data = pd.read_csv(weather_data_path)
-        result = data.tail(100).to_dict(orient="records")  # Return last 100 records
-        
-        return jsonify(result)
-        
+        if not weather_path.exists():
+            fetch_and_cache_weather(latitude, longitude, weather_path)
+        data = pd.read_csv(weather_path)
+        return jsonify(data.tail(100).to_dict(orient="records"))
     except Exception as e:
         print(f"Error loading NASA data: {str(e)}")
-        return jsonify([])  # Return empty array on error
+        return jsonify([])
 
 
 # -----------------------------
 # REGISTER BLUEPRINTS
 # -----------------------------
 
-# Register forecast API routes
 register_forecast_routes(app)
-
-# Register multigrid API routes
 register_multigrid_routes(app)
-
-# Register export API routes
 register_export_routes(app)
 
 
