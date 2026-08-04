@@ -361,29 +361,26 @@ def get_forecast():
             
             forecast_data = []
             for i, date in enumerate(dates):
-                # Demo solar generation
-                solar_declination = 23.45 * math.sin(math.radians(360 * (284 + i) / 365))
-                solar_altitude = math.radians(90 - abs(28.6139 - solar_declination))
-                solar_irradiance = max(0, 1000 * math.sin(solar_altitude))
-                solar_generation = (20 * 400 * 0.2 * solar_irradiance / 1000 * 0.8) / 1000
-                solar_generation = max(0, solar_generation)
+                # Demo solar generation - realistic positive values
+                # Use a simpler formula that always produces positive values
+                day_factor = 0.7 + 0.3 * math.sin(i * 0.2)  # Daily variation
+                solar_generation = 4.0 + 3.0 * day_factor + random.random() * 2
+                solar_generation = max(0.5, min(8.0, solar_generation))  # Clamp to realistic range
                 
-                # Demo wind generation
-                wind_speed = 8 + 4 * math.sin(i * 0.2) + 2 * random.random()
-                wind_speed = max(0, wind_speed)
-                if wind_speed >= 3 and wind_speed <= 25:
-                    wind_generation = (2 * 5000 * 0.35 * (wind_speed / 12) ** 3) / 1000
-                else:
-                    wind_generation = 0
+                # Demo wind generation - realistic values
+                wind_factor = 0.6 + 0.4 * math.sin(i * 0.15)
+                wind_generation = 2.0 + 2.5 * wind_factor + random.random() * 1.5
+                wind_generation = max(0.5, min(6.0, wind_generation))  # Clamp to realistic range
                 
-                # Demo demand
-                hour_factor = 0.6 + 0.4 * math.sin(i * 0.3)
-                demand = 30 * hour_factor + 5 * 0.2 * math.sin(i * 0.5)
+                # Demo demand - realistic values
+                demand_factor = 0.8 + 0.2 * math.sin(i * 0.25)
+                demand = 25.0 + 8.0 * demand_factor + random.random() * 3
+                demand = max(15.0, min(35.0, demand))  # Clamp to realistic range
                 
                 # Demo battery
                 total_generation = solar_generation + wind_generation
                 net_energy = total_generation - demand
-                battery_storage = max(0, net_energy * 0.7) if net_energy > 0 else 0
+                battery_storage = max(0, min(80.0, net_energy * 0.8)) if net_energy > 0 else 0
                 
                 forecast_data.append({
                     "date": date,
