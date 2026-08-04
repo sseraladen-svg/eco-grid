@@ -293,6 +293,8 @@ FLASK_DEBUG=0
 
 ### **Database Models**
 
+**Note**: Database files are not included in the repository for security reasons. The database is created automatically when you first run the application.
+
 **User Model:**
 - `id`: Primary key
 - `name`: User name
@@ -310,6 +312,11 @@ FLASK_DEBUG=0
 - `is_active`: Active configuration flag
 - `created_at`: Creation timestamp
 - `updated_at`: Last update timestamp
+
+**Database Setup:**
+- SQLite database is automatically created at `backend/ecogrid.db` on first run
+- Database schema is initialized automatically via SQLAlchemy
+- No manual database setup required
 
 ---
 
