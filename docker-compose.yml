@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  ecogrid-ai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ecogrid-ai
+    ports:
+      - "5000:5000"
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
+      - DATABASE_URL=sqlite:///backend/ecogrid.db
+      - FLASK_ENV=production
+      - FLASK_DEBUG=0
+    volumes:
+      - ./backend/data:/app/backend/data
+      - ./backend/ecogrid.db:/app/backend/ecogrid.db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+    networks:
+      - ecogrid-network
+
+networks:
+  ecogrid-network:
+    driver: bridge

@@ -1,5 +1,5 @@
 # 🌱 EcoGrid AI
-### ⚡ Next-Generation Renewable Energy Intelligence Platform
+### ⚡ Renewable Energy Forecasting & Management Platform
 
 <div align="center">
 
@@ -8,77 +8,66 @@
 [![AI](https://img.shields.io/badge/AI-Prophet-purple?style=for-the-badge&logo=tensorflow&logoColor=white)](https://facebook.github.io/prophet/)
 [![NASA](https://img.shields.io/badge/NASA-POWER-blue?style=for-the-badge&logo=nasa&logoColor=white)](https://power.larc.nasa.gov/)
 [![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Production%20Ready-success?style=for-the-badge)]()
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
 
 </div>
 
 ---
 
-## 🚀 **Revolutionary Energy Management**
+## 🎯 **Project Overview**
 
-**EcoGrid AI** isn't just another energy dashboard — it's a **decade-ahead intelligent platform** that transforms how humanity manages renewable energy. Powered by **cutting-edge AI algorithms**, **real-time NASA weather data**, and **next-generation forecasting**, EcoGrid AI delivers the kind of energy intelligence that was science fiction just years ago.
+**EcoGrid AI** is a comprehensive renewable energy management platform that combines physics-based simulations with AI-powered forecasting to help users optimize their solar and wind energy systems. The platform provides real-time energy predictions, multi-site management, and intelligent analytics for residential and commercial energy installations.
 
-### 🔮 **Why We're Decades Ahead**
+### **Core Capabilities**
 
-| Traditional Solutions | **EcoGrid AI** |
-|----------------------|----------------|
-| Historical data analysis | **AI-powered predictive modeling** |
-| Static reporting | **Real-time adaptive forecasting** |
-| Single-site monitoring | **Multi-grid intelligent coordination** |
-| Manual calculations | **Automated physics-based simulations** |
-| Basic charts | **Interactive AI-driven visualizations** |
+- **🧠 AI-Powered Forecasting**: Facebook Prophet integration for accurate 30-day energy predictions
+- **🌍 Real-Time Weather Data**: NASA POWER API integration for location-specific weather patterns
+- **📊 Physics-Based Simulation**: Solar declination calculations, wind speed modeling, and battery optimization
+- **🎯 Multi-Grid Management**: Monitor and compare multiple energy sites simultaneously
+- **🔐 Enterprise Security**: Session-based authentication with secure password management
+- **🎨 Modern UI**: Dark theme design with interactive charts and responsive layout
 
 ---
 
-## ✨ **Mind-Blowing Features**
+## ✨ **Key Features**
 
-### 🧠 **AI-Powered Prophet Forecasting**
-- **85%+ accuracy** on 30-day energy predictions
-- **Facebook Prophet integration** for time-series forecasting
-- **Automatic pattern recognition** for seasonal trends
-- **Confidence intervals** and uncertainty quantification
-- **Continuous learning** from historical data
+### **1. Intelligent Energy Forecasting**
+- **Physics-Based Simulation**: Solar generation calculated using panel specifications, location, and solar declination
+- **Wind Speed Modeling**: Realistic wind patterns with cut-in/cut-out speed thresholds
+- **Battery Optimization**: Dynamic charging/discharging based on net energy calculations
+- **Demand Modeling**: Realistic usage patterns with seasonal variations
+- **Data Validation**: Ensures all generation values are positive and realistic
 
-### 🌍 **NASA POWER Weather Integration**
-- **Real-time weather data** from NASA's POWER API
-- **Solar irradiance calculations** based on precise location
-- **Wind speed patterns** with daily variation modeling
-- **Global coverage** for any installation location
-- **Climate pattern analysis** for long-term planning
+### **2. AI Model Training**
+- **Prophet Integration**: Facebook Prophet for time-series forecasting
+- **Automatic Training**: Trains on historical data when available
+- **Model Status Tracking**: Real-time training progress and accuracy metrics
+- **Fallback Mechanisms**: Graceful degradation to physics simulation when AI models unavailable
 
-### 🎯 **Multi-Grid Intelligent Management**
-- **Simultaneous monitoring** of multiple energy sites
-- **Smart load balancing** across grids
-- **Cross-site optimization** algorithms
-- **Comparative performance analytics**
-- **Instant site switching** with one click
+### **3. Multi-Site Management**
+- **Configuration Management**: Create and manage multiple energy system configurations
+- **Site Comparison**: Side-by-side performance analysis across sites
+- **Active Site Switching**: One-click configuration changes
+- **Performance Metrics**: Key indicators per site (solar, wind, battery, consumption)
 
-### 📊 **Real-Time Physics Simulation**
-- **Solar generation**: Calculated using panel specs, location, and solar declination
-- **Wind generation**: Based on turbine parameters, cut-in/cut-out speeds, and wind patterns
-- **Battery storage**: Dynamic charging/discharging optimization
-- **Demand modeling**: Realistic usage patterns with seasonal variations
-- **Net energy calculations**: Precise export/import optimization
+### **4. Modern User Interface**
+- **Dark Theme Design**: Professional copper/teal color scheme
+- **Interactive Charts**: Chart.js integration for data visualization
+- **Responsive Layout**: Works seamlessly on desktop and mobile devices
+- **Real-Time Updates**: Live data fetching and display
+- **Modern Typography**: Space Grotesk, Inter, and IBM Plex Mono fonts
 
-### 🎨 **Next-Generation UI**
-- **Dark theme design** with copper/teal accents
-- **Glass morphism effects** and smooth animations
-- **Chart.js integration** for interactive visualizations
-- **Responsive design** for all devices
-- **Professional typography** with Space Grotesk, Inter, and IBM Plex Mono
-
-### 🔐 **Enterprise-Grade Security**
-- **Session-based authentication** with secure cookies
-- **Password strength validation** with real-time feedback
-- **SQLAlchemy ORM** for database security
-- **CSRF protection** ready for production
-- **Environment variable configuration** for secrets
+### **5. Data Export System**
+- **Multiple Formats**: JSON, CSV, and Excel export options
+- **Flexible Export**: Export specific configurations or all data
+- **Modern Interface**: Clean modal-based export experience
+- **Instant Download**: Direct file delivery with proper formatting
 
 ---
 
 ## 🛠️ **Technology Stack**
 
-### **Backend - The Brain**
+### **Backend**
 ```yaml
 Framework: Flask 2.0+ (Blueprint Architecture)
 Database: SQLite with SQLAlchemy ORM
@@ -87,133 +76,154 @@ Weather: NASA POWER API Integration
 Authentication: Flask-Login with Session Management
 Data Processing: Pandas & NumPy
 Export: openpyxl for Excel, CSV, JSON
+Security: bcrypt password hashing
 ```
 
-### **Frontend - The Face**
+### **Frontend**
 ```yaml
 Visualization: Chart.js (Interactive Charts)
-Icons: Font Awesome 6.4.0
-Maps: OpenStreetMap (Leaflet.js)
-Design: Custom CSS with Variables
+Icons: Custom SVG icons
+Maps: OpenStreetMap (Leaflet.js) - Optional
+Design: Custom CSS with CSS Variables
 Typography: Space Grotesk, Inter, IBM Plex Mono
-Architecture: Single Page Application (SPA)
+Architecture: Multi-page Application
+```
+
+### **DevOps**
+```yaml
+Containerization: Docker & Docker Compose
+Version Control: Git
+Environment: python-dotenv
 ```
 
 ---
 
-## 🚀 **Quick Start (5 Minutes to the Future)**
+## 🚀 **Quick Start**
 
 ### **Prerequisites**
-- ✅ Python 3.8 or higher
-- ✅ pip (Python package manager)
-- ✅ Terminal/command prompt
+- Python 3.8 or higher
+- pip (Python package manager)
+- Git (for cloning)
 
-### **Installation**
+### **Local Development**
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-org/ecogrid-ai.git
-cd ecogrid-ai
+git clone https://github.com/sseraladen-svg/eco-grid.git
+cd eco-grid
 
-# 2. Install dependencies
+# 2. Create virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# 3. Install dependencies
 pip install -r requirements.txt
 
-# 3. Start the future
+# 4. Set up environment variables
+cp .env.example .env
+# Edit .env with your configuration
+
+# 5. Start the application
 python backend/main.py
 
-# 4. Access the platform
+# 6. Access the platform
 # Open http://localhost:5000 in your browser
 ```
 
-### **That's It!** 🎉
-You're now running a platform that predicts energy generation with **NASA-calculated precision** and **AI-powered accuracy**.
-
----
-
-## 📱 **Complete Feature Breakdown**
-
-### 🔐 **1. Authentication System**
-- **Modern two-column login** with animated curve visualization
-- **Tabbed interface** for Sign In / Create Account
-- **Password strength meter** with real-time validation
-- **Show/hide password** functionality
-- **Loading states** with spinner animations
-- **Session management** with 7-day persistence
-
-### ⚙️ **2. Intelligent Setup Wizard**
-- **5-step configuration**: Location → Solar → Wind → Battery → Consumption
-- **Interactive map integration** (OpenStreetMap)
-- **Live summary sidebar** with real-time calculations
-- **Pre-filled smart defaults** for quick setup
-- **Validated inputs** with error handling
-- **Configuration comparison** across multiple setups
-
-### 📊 **3. Energy Dashboard**
-- **Real-time KPI cards**: Today's generation, 30-day total, peak performance
-- **Interactive charts**: Solar vs demand visualization
-- **Site switcher**: Quick switching between configurations
-- **Export functionality**: One-click data export
-- **Active site indicator**: Shows current configuration
-- **Performance metrics**: Efficiency, trend, volatility
-
-### 🧠 **4. AI Forecasting Center**
-- **Training progress visualization**: Step-by-step AI model training
-- **Model status indicators**: Trained/Training/Not trained states
-- **Performance statistics**: Accuracy, trend, volatility, peak predictions
-- **30-day forecast chart**: Solar and wind generation visualization
-- **Detailed forecast table**: Daily predictions with confidence levels
-- **Export options**: JSON, CSV, Excel formats
-
-### 🌐 **5. Multi-Grid Management**
-- **Card-based interface**: Visual representation of each site
-- **Active site switching**: One-click configuration changes
-- **Grid comparison**: Side-by-side performance analysis
-- **Metrics display**: Key performance indicators per site
-- **Configuration management**: Add, edit, delete configurations
-
-### 📤 **6. Data Export System**
-- **Multiple formats**: JSON, CSV, Excel export
-- **Modern modal interface**: Clean export experience
-- **Bulk export**: Export all configurations at once
-- **Custom date ranges**: Select specific time periods
-- **Instant download**: Direct file delivery
-
----
-
-## 🔌 **API Architecture**
-
-### **Core Endpoints**
+### **Docker Deployment**
 
 ```bash
-# 🔐 Authentication
-POST /login
-POST /logout
-GET /api/user/profile
+# 1. Clone the repository
+git clone https://github.com/sseraladen-svg/eco-grid.git
+cd eco-grid
 
-# ⚙️ Configuration
-POST /submit_setup
-GET /api/setup/active
-GET /api/setup/compare?configs=1,2,3
-POST /api/setup/set-active
+# 2. Build and run with Docker Compose
+docker-compose up -d
 
-# 🧠 Forecasting
-GET /forecast                    # Physics-based simulation
-GET /forecast_prophet           # AI-powered predictions
-POST /train_prophet              # Train AI model
-GET /forecast/model/status      # Check model status
+# 3. Access the platform
+# Open http://localhost:5000 in your browser
 
-# 📤 Export
-GET /api/export?format=json     # JSON export
-GET /api/export?format=csv      # CSV export
-GET /api/export?format=xlsx     # Excel export
+# 4. View logs
+docker-compose logs -f
 
-# 🌐 Multi-Grid
-GET /api/user/configurations    # Get all user configurations
+# 5. Stop the application
+docker-compose down
 ```
 
-### **Data Flow**
+---
+
+## 📱 **Application Pages**
+
+### **1. Login Page (`/`)**
+- Modern two-column design with animated curve visualization
+- Tabbed interface for Sign In / Create Account
+- Password strength meter with real-time validation
+- Session management with 7-day persistence
+- Google OAuth integration (optional)
+
+### **2. Setup Wizard (`/setup`)**
+- 5-step configuration: Location → Solar → Wind → Battery → Consumption
+- Interactive map integration (Leaflet.js)
+- Live summary sidebar with real-time calculations
+- Pre-filled smart defaults for quick setup
+- Configuration persistence to database
+
+### **3. Dashboard (`/dashboard`)**
+- Real-time KPI cards: Today's generation, 30-day total, peak performance
+- Interactive charts: Solar vs wind generation visualization
+- Site switcher for quick configuration changes
+- 7-day forecast table with daily predictions
+- Model status indicator (AI vs Physics)
+
+### **4. Forecasting Center (`/forecasting`)**
+- AI model training interface with progress visualization
+- Model status indicators (Trained/Training/Not trained)
+- Performance statistics: Accuracy, trend, volatility
+- 30-day forecast chart with solar and wind lines
+- Detailed forecast table with confidence levels
+- Export functionality (JSON, CSV, Excel)
+
+### **5. Multi-Grid Management (`/multigrid`)**
+- Card-based interface for site configurations
+- Active site indicator with visual feedback
+- Grid comparison with side-by-side analysis
+- Site specifications display (solar, wind, battery)
+- Configuration management (add, switch, compare)
+
+---
+
+## 🔌 **API Endpoints**
+
+### **Authentication**
+```bash
+POST /login                    # User login/registration
+POST /logout                   # User logout
+GET /api/user/profile          # Get current user profile
+GET /api/user/configurations   # Get user configurations
 ```
-User → Frontend → API → Business Logic → Database → AI Model → NASA API → Response
+
+### **Configuration**
+```bash
+POST /submit_setup             # Save system configuration
+POST /save_setup               # Save without forecast generation
+GET /api/setup/active          # Get active configuration
+POST /api/setup/set-active     # Set active configuration
+GET /api/setup/compare        # Compare configurations
+```
+
+### **Forecasting**
+```bash
+GET /forecast                  # Physics-based simulation
+GET /forecast/model/status    # Check AI model status
+POST /forecast/model/train    # Train Prophet model
+POST /forecast/generate       # Generate AI forecast
+```
+
+### **Export**
+```bash
+GET /api/export?format=json   # JSON export
+GET /api/export?format=csv    # CSV export
+GET /api/export?format=xlsx   # Excel export
 ```
 
 ---
@@ -222,105 +232,201 @@ User → Frontend → API → Business Logic → Database → AI Model → NASA 
 
 ```
 EcoGrid-AI/
-├── 🧠 backend/                 # The Intelligence Core
-│   ├── main.py                 # Flask application & routing
-│   ├── auth.py                 # Authentication & session management
-│   ├── forecast.py             # Forecasting engine
-│   ├── models.py               # Database models (SQLAlchemy)
-│   ├── google_auth.py          # OAuth integration (optional)
-│   ├── export.py               # Data export system
-│   ├── weather.py              # NASA POWER API integration
-│   └── multigrid.py            # Multi-grid management
+├── backend/                    # Flask Backend
+│   ├── main.py                # Main application & routing
+│   ├── models.py              # SQLAlchemy database models
+│   ├── auth.py                # Authentication system
+│   ├── google_auth.py         # Google OAuth integration
+│   ├── forecast.py            # Prophet AI forecasting
+│   ├── multigrid.py           # Multi-grid management
+│   ├── export.py              # Data export functionality
+│   ├── weather.py             # NASA POWER weather API
+│   └── data/                  # Runtime data directory
 │
-├── 🎨 frontend/                # The User Experience
-│   ├── login.html              # Futuristic login page
-│   ├── dashboard.html          # Main energy dashboard
-│   ├── setup.html              # Intelligent setup wizard
-│   ├── forecasting.html        # AI forecasting center
-│   ├── multigrid.html          # Multi-grid management
-│   ├── navigation.html         # Navigation component
-│   ├── script.js               # Common JavaScript
-│   └── forecast-script.js      # Forecasting scripts
+├── frontend/                   # Frontend Files
+│   ├── login.html             # Login/Registration page
+│   ├── dashboard.html         # Main dashboard
+│   ├── setup.html             # Setup wizard
+│   ├── forecasting.html       # Forecasting center
+│   ├── multigrid.html         # Multi-grid management
+│   ├── navigation.html        # Navigation component
+│   ├── script.js              # General JavaScript
+│   ├── forecast-script.js     # Forecasting JavaScript
+│   └── assets/css/            # Styling
 │
-├── 🤖 training/                # AI Model Training
-│   └── train_prophet.py         # Prophet model training
+├── forecasting/               # Forecast Generation
+│   └── forecast_generation.py # Physics-based forecast
 │
-├── 📦 requirements.txt         # Python dependencies
-├── 📚 API_DOCUMENTATION.md     # Complete API documentation
-└── 📖 README.md                # This file
+├── training/                  # AI Training
+│   └── train_prophet.py       # Prophet model training
+│
+├── requirements.txt           # Python dependencies
+├── Dockerfile                 # Docker configuration
+├── docker-compose.yml         # Docker Compose configuration
+├── .env.example               # Environment variables template
+└── README.md                  # This file
 ```
 
 ---
 
-## 🎯 **Configuration**
+## 🔧 **Configuration**
 
 ### **Environment Variables**
 
 Create a `.env` file in the project root:
 
 ```bash
-# 🔒 Security
-SECRET_KEY=your-secure-secret-key-here
-DEBUG=True
+# Application Security
+SECRET_KEY=your-secret-key-change-in-production
 
-# 💾 Database (default: SQLite)
-DATABASE_URL=sqlite:///ecogrid.db
+# Database
+DATABASE_URL=sqlite:///backend/ecogrid.db
 
-# 🍪 Session Configuration
-SESSION_COOKIE_SECURE=False
-SESSION_COOKIE_HTTPONLY=True
-SESSION_COOKIE_SAMESITE=Lax
-PERMANENT_SESSION_LIFETIME=604800
+# Google OAuth (Optional)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# Flask Configuration
+FLASK_ENV=production
+FLASK_DEBUG=0
 ```
 
-### **System Requirements**
+### **Database Models**
 
-| Component | Minimum | Recommended |
-|-----------|---------|-------------|
-| RAM | 4GB | 8GB+ |
-| Storage | 10GB | 50GB+ |
-| CPU | 2 cores | 4+ cores |
-| Python | 3.8+ | 3.10+ |
+**User Model:**
+- `id`: Primary key
+- `name`: User name
+- `email`: Unique email address
+- `password_hash`: Bcrypt hashed password
+- `created_at`: Account creation timestamp
+- `last_login`: Last login timestamp
+- `is_active`: Account status
+
+**SystemConfiguration Model:**
+- `id`: Primary key
+- `user_id`: Foreign key to User
+- `name`: Configuration name
+- `config_data`: JSON configuration data
+- `is_active`: Active configuration flag
+- `created_at`: Creation timestamp
+- `updated_at`: Last update timestamp
+
+---
+
+## 📊 **Data Flow**
+
+```
+User Request → Frontend Interface → API Endpoint → Business Logic
+    ↓
+Database Operations → AI Model Processing → NASA Weather API
+    ↓
+Data Validation → Response Generation → Frontend Display
+```
+
+---
+
+## 🧪 **Testing**
+
+### **API Testing**
+
+```bash
+# Test forecast endpoint
+curl http://localhost:5000/forecast
+
+# Test model status
+curl http://localhost:5000/forecast/model/status
+
+# Test user profile (requires authentication)
+curl http://localhost:5000/api/user/profile
+```
+
+### **Database Testing**
+
+```bash
+# Access SQLite database
+sqlite3 backend/ecogrid.db
+
+# View tables
+.tables
+
+# View users
+SELECT * FROM user;
+
+# View configurations
+SELECT * FROM system_configuration;
+```
 
 ---
 
 ## 🚀 **Deployment Options**
 
-### **Development Server**
+### **1. Docker Deployment (Recommended)**
+
 ```bash
-python backend/main.py
+# Build and run
+docker-compose up -d
+
+# Scale for production
+docker-compose up -d --scale ecogrid-ai=3
+
+# View logs
+docker-compose logs -f ecogrid-ai
 ```
 
-### **Production Server (Gunicorn)**
+### **2. Cloud Deployment**
+
+**Heroku:**
 ```bash
-pip install gunicorn
-gunicorn -w 4 -b 0.0.0.0:5000 backend.main:app
+# Install Heroku CLI
+# Login and create app
+heroku create ecogrid-ai
+heroku addons:add heroku-postgresql
+
+# Deploy
+git push heroku main
 ```
 
-### **Docker Deployment**
-```dockerfile
-FROM python:3.9-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install -r requirements.txt
-COPY . .
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "backend.main:app"]
-```
+**AWS/Azure/GCP:**
+- Use Docker containers with cloud deployment services
+- Configure environment variables in cloud platform
+- Set up load balancer for high availability
+- Configure SSL certificates
 
-### **Cloud Deployment**
-- **Heroku**: Ready for PaaS deployment
-- **AWS**: EC2 with Gunicorn
-- **Google Cloud**: App Engine compatible
-- **Azure**: Web App deployment ready
+### **3. Traditional VPS Deployment**
+
+```bash
+# Install dependencies
+sudo apt-get update
+sudo apt-get install python3-pip python3-venv nginx
+
+# Set up application
+git clone https://github.com/sseraladen-svg/eco-grid.git
+cd eco-grid
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Configure Nginx reverse proxy
+# Configure SSL with Let's Encrypt
+# Set up systemd service
+```
 
 ---
 
-## 📚 **Documentation**
+## 🔒 **Security Considerations**
 
-- **[API Documentation](API_DOCUMENTATION.md)**: Complete API reference
-- **[Installation Guide](#quick-start-5-minutes-to-the-future)**: Step-by-step setup
-- **[Feature Details](#complete-feature-breakdown)**: In-depth feature explanation
-- **[Troubleshooting](#troubleshooting)**: Common issues and solutions
+### **Production Deployment Checklist**
+
+- ✅ Change `SECRET_KEY` to a strong random value
+- ✅ Use PostgreSQL instead of SQLite for production
+- ✅ Enable HTTPS/SSL
+- ✅ Configure firewall rules
+- ✅ Set up regular database backups
+- ✅ Implement rate limiting
+- ✅ Add CSRF protection
+- ✅ Configure logging and monitoring
+- ✅ Set up error tracking (Sentry, etc.)
+- ✅ Regular security updates
 
 ---
 
@@ -328,72 +434,107 @@ CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "backend.main:app"]
 
 ### **Common Issues**
 
-**🔧 Database Error**
-```bash
-rm ecogrid.db
-python backend/main.py
-```
+**1. Negative Values in Forecast**
+- **Issue**: Corrupted CSV file in `backend/data/`
+- **Solution**: Delete `backend/data/forecast_output.csv` and restart server
 
-**🔧 Import Errors**
-```bash
-pip install -r requirements.txt
-```
+**2. Database Locked Error**
+- **Issue**: SQLite database locked by another process
+- **Solution**: Restart Flask application or check for running processes
 
-**🔧 Port Already in Use**
-```python
-# In backend/main.py
-if __name__ == '__main__':
-    app.run(debug=True, port=5001)  # Use different port
-```
+**3. Import Errors**
+- **Issue**: Missing dependencies
+- **Solution**: Run `pip install -r requirements.txt`
 
-**🔧 Dashboard Not Loading**
-- Check browser console (F12) for JavaScript errors
-- Verify server is running on http://localhost:5000
-- Check network tab for API call failures
+**4. Port Already in Use**
+- **Issue**: Port 5000 already in use
+- **Solution**: Change port in `main.py` or stop conflicting service
+
+**5. Google OAuth Not Working**
+- **Issue**: Missing or incorrect Google credentials
+- **Solution**: Configure `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env`
 
 ---
 
-## 🔒 **Security Features**
+## 📈 **Performance Optimization**
 
-- ✅ **Session-based authentication** with secure cookies
-- ✅ **Password strength validation** with real-time feedback
-- ✅ **SQLAlchemy ORM** for SQL injection protection
-- ✅ **CSRF protection** ready for production
-- ✅ **Environment variable configuration** for secrets
-- ✅ **HTTPS compatible** for production deployment
+### **Database Optimization**
+- Use connection pooling
+- Add database indexes for frequent queries
+- Consider PostgreSQL for production
 
----
+### **API Optimization**
+- Implement response caching
+- Add pagination for large datasets
+- Use async operations for I/O heavy tasks
 
-## 🎓 **Learning Resources**
-
-- **[Prophet Documentation](https://facebook.github.io/prophet/)**: Learn about time-series forecasting
-- **[NASA POWER API](https://power.larc.nasa.gov/)**: Weather data documentation
-- **[Flask Documentation](https://flask.palletsprojects.com/)**: Web framework guide
-- **[Chart.js Documentation](https://www.chartjs.org/)**: Visualization library
+### **Frontend Optimization**
+- Minify CSS and JavaScript
+- Implement lazy loading for charts
+- Use CDN for external libraries
 
 ---
 
 ## 🤝 **Contributing**
 
-We welcome contributions! This is the future of energy management, and we'd love your help in making it even better.
+Contributions are welcome! Please follow these guidelines:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ---
 
 ## 📄 **License**
 
-This project is licensed under the MIT License - feel free to use it in your own energy projects!
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ---
 
-## 🌟 **What Makes EcoGrid AI Different**
+## 🙏 **Acknowledgments**
 
-**Traditional energy dashboards** show you what happened yesterday.
+- **Facebook Prophet**: Time-series forecasting library
+- **NASA POWER API**: Weather and solar data
+- **Flask**: Web framework
+- **Chart.js**: Data visualization library
+- **OpenStreetMap**: Mapping services
 
-**EcoGrid AI** tells you what will happen tomorrow, next week, and next month — with **85%+ accuracy**.
+---
 
-We're not just monitoring energy. We're **predicting the future** of renewable energy using **NASA-calculated precision** and **AI-powered intelligence**.
+## 📞 **Support**
 
-This isn't just an energy management system. It's **energy intelligence**.
+For issues, questions, or contributions:
+- 📧 Email: support@ecogrid-ai.com
+- 🐛 Issues: GitHub Issues
+- 📖 Documentation: [API Documentation](API_DOCUMENTATION.md)
+
+---
+
+## 🎯 **Roadmap**
+
+### **Phase 1: Core Features** ✅
+- [x] User authentication and session management
+- [x] System configuration wizard
+- [x] Physics-based energy simulation
+- [x] AI model training and forecasting
+- [x] Multi-grid management
+- [x] Data export functionality
+
+### **Phase 2: Advanced Features** 🚧
+- [ ] Real-time WebSocket updates
+- [ ] Advanced analytics and reporting
+- [ ] Mobile application (React Native)
+- [ ] Integration with smart home devices
+- [ ] Automated alert system
+
+### **Phase 3: Enterprise Features** 🔮
+- [ ] Multi-tenant architecture
+- [ ] Advanced role-based access control
+- [ ] White-label customization
+- [ ] API rate limiting and analytics
+- [ ] Enterprise support and SLA
 
 ---
 
@@ -401,6 +542,6 @@ This isn't just an energy management system. It's **energy intelligence**.
 
 **Built with ❤️ for a sustainable future**
 
-**🌱 Together, we're powering the future of energy**
+[⬆ Back to Top](#-ecogrid-ai)
 
 </div>
