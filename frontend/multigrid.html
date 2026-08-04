@@ -1,245 +1,488 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoGrid AI - Multi-Grid</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        * { font-family: 'Inter', sans-serif; }
-        body {
-            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #0f0f23 100%);
-            min-height: 100vh;
-            color: #ffffff;
-        }
-        .glass-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-        }
-        .site-card {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            transition: all 0.2s ease;
-        }
-        .site-card:hover {
-            border-color: rgba(59, 130, 246, 0.5);
-            transform: translateY(-2px);
-        }
-        .site-card.active-site {
-            border-color: #22c55e;
-            box-shadow: 0 0 0 1px #22c55e;
-        }
-        .btn {
-            padding: 0.5rem 1.25rem;
-            border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.875rem;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            border: none;
-        }
-        .btn-primary { background: #3b82f6; color: white; }
-        .btn-primary:hover { background: #2563eb; }
-        .btn-success { background: #22c55e; color: white; }
-        .btn-success:hover { background: #16a34a; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .checkbox-compare { width: 18px; height: 18px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EcoGrid AI — Multi-Grid</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  :root{
+    --bg-deep:#0B1120;
+    --bg-panel:#101A2E;
+    --bg-card:#141E33;
+    --bg-card-hover:#182644;
+    --line:#243250;
+    --copper:#E8934A;
+    --copper-dim:#B9713A;
+    --teal:#3DDBD9;
+    --text:#F5F3EE;
+    --text-muted:#8B93A7;
+    --text-faint:#4E5A78;
+    --danger:#E8636A;
+    --success:#5FD98A;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Inter',sans-serif;
+    background:var(--bg-deep);
+    color:var(--text);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    display:flex;
+  }
+  a{color:inherit;text-decoration:none;}
+  button{font-family:inherit;}
+
+  /* ---------------- SIDEBAR (identical to dashboard) ---------------- */
+  .sidebar{
+    width:76px;flex-shrink:0;background:var(--bg-panel);border-right:1px solid var(--line);
+    display:flex;flex-direction:column;align-items:center;padding:22px 0;
+    position:sticky;top:0;height:100vh;
+  }
+  .brand-mark{
+    width:36px;height:36px;border-radius:9px;
+    background:linear-gradient(135deg,var(--copper),var(--copper-dim));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:17px;color:#0B1120;
+    margin-bottom:36px;
+  }
+  .nav-list{display:flex;flex-direction:column;gap:8px;flex:1;}
+  .nav-item{
+    width:48px;height:48px;border-radius:11px;
+    display:flex;align-items:center;justify-content:center;color:var(--text-muted);
+    cursor:pointer;transition:background .15s ease,color .15s ease;position:relative;
+  }
+  .nav-item svg{width:20px;height:20px;}
+  .nav-item:hover{background:var(--bg-card);color:var(--text);}
+  .nav-item.active{background:rgba(232,147,74,0.14);color:var(--copper);}
+  .nav-item.active::before{
+    content:'';position:absolute;left:-22px;top:50%;transform:translateY(-50%);
+    width:3px;height:20px;background:var(--copper);border-radius:2px;
+  }
+  .nav-tooltip{
+    position:absolute;left:60px;top:50%;transform:translateY(-50%);
+    background:var(--bg-card);border:1px solid var(--line);padding:6px 10px;border-radius:7px;
+    font-size:12px;font-weight:500;white-space:nowrap;opacity:0;pointer-events:none;
+    transition:opacity .12s ease;z-index:20;
+  }
+  .nav-item:hover .nav-tooltip{opacity:1;}
+  .nav-bottom{display:flex;flex-direction:column;gap:8px;}
+
+  /* ---------------- MAIN ---------------- */
+  .main{flex:1;min-width:0;padding:28px 36px 60px;}
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px;}
+  .topbar-left h1{font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:600;letter-spacing:-0.01em;margin-bottom:4px;}
+  .topbar-left p{font-size:13px;color:var(--text-muted);}
+
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;
+    padding:10px 16px;border-radius:10px;font-weight:600;font-size:13px;
+    cursor:pointer;border:1px solid var(--line);background:var(--bg-card);color:var(--text);
+    transition:all .15s ease;
+  }
+  .btn:hover{border-color:var(--copper-dim);}
+  .btn-primary{background:var(--copper);border-color:var(--copper);color:#12161f;}
+  .btn-primary:hover{background:#F0A263;}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  .btn svg{width:14px;height:14px;}
+
+  /* ---------------- STATE MESSAGES ---------------- */
+  .empty-state{text-align:center;padding:80px 20px;color:var(--text-muted);}
+  .empty-state svg{width:40px;height:40px;opacity:.4;margin-bottom:14px;}
+  .empty-state h3{font-family:'Space Grotesk',sans-serif;font-size:17px;color:var(--text);margin-bottom:8px;}
+  .empty-state p{font-size:13.5px;margin-bottom:20px;max-width:340px;margin-left:auto;margin-right:auto;}
+
+  /* ---------------- SITE CARDS ---------------- */
+  .site-grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:34px;
+  }
+  .site-card{
+    background:var(--bg-panel);border:1px solid var(--line);border-radius:14px;
+    padding:20px;position:relative;overflow:hidden;transition:border-color .15s ease,transform .15s ease;
+  }
+  .site-card:hover{border-color:var(--copper-dim);transform:translateY(-2px);}
+  .site-card.is-active{border-color:var(--success);box-shadow:0 0 0 1px rgba(95,217,138,0.4);}
+  .site-accent{position:absolute;top:0;left:0;width:3px;height:100%;background:var(--text-faint);}
+  .site-card.is-active .site-accent{background:var(--success);}
+
+  .card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;}
+  .card-head h3{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;margin-bottom:4px;}
+  .card-head .loc{
+    font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text-muted);
+    display:flex;align-items:center;gap:5px;
+  }
+  .card-head .loc svg{width:11px;height:11px;flex-shrink:0;}
+
+  .active-badge{
+    font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;
+    color:var(--success);background:rgba(95,217,138,0.14);padding:4px 8px;border-radius:6px;
+    display:flex;align-items:center;gap:5px;flex-shrink:0;
+  }
+  .active-badge .dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+  .spec-list{display:flex;flex-direction:column;gap:9px;margin-bottom:18px;}
+  .spec-row{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--text-muted);}
+  .spec-row svg{width:14px;height:14px;flex-shrink:0;}
+  .spec-row .spec-val{color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:12px;margin-left:auto;}
+
+  .card-foot{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding-top:16px;border-top:1px solid var(--line);
+  }
+  .compare-check{
+    display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--text-muted);cursor:pointer;
+  }
+  .compare-check input{
+    appearance:none;width:16px;height:16px;border:1.5px solid var(--line);border-radius:5px;
+    cursor:pointer;position:relative;background:var(--bg-card);flex-shrink:0;
+  }
+  .compare-check input:checked{background:var(--copper);border-color:var(--copper);}
+  .compare-check input:checked::after{
+    content:'';position:absolute;left:4px;top:1px;width:4px;height:8px;
+    border:solid #12161f;border-width:0 2px 2px 0;transform:rotate(45deg);
+  }
+
+  .make-active-btn{
+    padding:8px 14px;border-radius:8px;font-size:12px;font-weight:700;border:none;cursor:pointer;
+    transition:all .15s ease;
+  }
+  .make-active-btn.inactive{background:var(--copper);color:#12161f;}
+  .make-active-btn.inactive:hover{background:#F0A263;}
+  .make-active-btn.active{background:rgba(95,217,138,0.14);color:var(--success);cursor:default;}
+
+  /* ---------------- COMPARE BAR ---------------- */
+  .compare-bar{
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120%);
+    background:var(--bg-card);border:1px solid var(--line);border-radius:14px;
+    padding:12px 14px 12px 20px;display:flex;align-items:center;gap:16px;
+    box-shadow:0 16px 40px rgba(0,0,0,0.5);z-index:40;transition:transform .25s ease;
+  }
+  .compare-bar.show{transform:translateX(-50%) translateY(0);}
+  .compare-bar span{font-size:13px;font-weight:600;}
+  .compare-bar span b{color:var(--copper);}
+
+  /* ---------------- COMPARISON RESULTS ---------------- */
+  .compare-results{display:none;}
+  .compare-results.show{display:block;}
+  .panel{background:var(--bg-panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:16px;}
+  .panel-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+  .panel-head h2{font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:600;}
+  .panel-head .sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
+  .chart-wrap{height:280px;}
+
+  .compare-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}
+  .summary-card{
+    background:var(--bg-card);border:1px solid var(--line);border-radius:12px;padding:16px;
+    border-left:3px solid var(--copper);
+  }
+  .summary-card h4{font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;margin-bottom:10px;}
+  .summary-card .row{display:flex;justify-content:space-between;font-size:12.5px;color:var(--text-muted);margin-bottom:4px;}
+  .summary-card .row b{color:var(--text);font-family:'IBM Plex Mono',monospace;font-weight:500;}
+
+  .toast{
+    position:fixed;bottom:24px;right:24px;background:var(--bg-card);border:1px solid var(--line);
+    border-radius:10px;padding:12px 16px;font-size:13px;display:flex;align-items:center;gap:10px;
+    transform:translateY(20px);opacity:0;pointer-events:none;transition:all .25s ease;z-index:100;
+    box-shadow:0 10px 30px rgba(0,0,0,0.4);
+  }
+  .toast.show{transform:translateY(0);opacity:1;}
+  .toast .dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex-shrink:0;}
+  .toast.error .dot{background:var(--danger);}
+
+  @media (max-width: 640px){
+    .sidebar{width:60px;}
+    .main{padding:20px 16px 90px;}
+    .site-grid{grid-template-columns:1fr;}
+  }
+</style>
 </head>
 <body>
-    <div id="nav-container"></div>
 
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-12">
-        <div class="mb-8">
-            <h1 class="text-4xl font-bold text-white mb-2">Multi-Grid</h1>
-            <p class="text-gray-400">Manage and compare every site on your account. Click a site to make it active, or select two to compare.</p>
-        </div>
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="brand-mark">E</div>
+    <div class="nav-list">
+      <a class="nav-item" href="/dashboard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        <span class="nav-tooltip">Dashboard</span>
+      </a>
+      <a class="nav-item" href="/forecasting">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-6 4 4 8-9"/><path d="M14 6h6v6"/></svg>
+        <span class="nav-tooltip">Forecasting</span>
+      </a>
+      <a class="nav-item active" href="/multigrid">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
+        <span class="nav-tooltip">Multi-Grid</span>
+      </a>
+      <a class="nav-item" href="/setup">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.33 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.33 1.7 1.7 0 00-1 1.55V21a2 2 0 01-4 0v-.09A1.7 1.7 0 009 19.4a1.7 1.7 0 00-1.87.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.7 1.7 0 004.6 15a1.7 1.7 0 00-1.55-1H3a2 2 0 010-4h.09A1.7 1.7 0 004.6 9a1.7 1.7 0 00-.33-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06A1.7 1.7 0 009 4.6a1.7 1.7 0 001-1.55V3a2 2 0 014 0v.09a1.7 1.7 0 001 1.55 1.7 1.7 0 001.87-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.7 1.7 0 0019.4 9c.14.36.4.66.73.86"/></svg>
+        <span class="nav-tooltip">Setup</span>
+      </a>
+    </div>
+    <div class="nav-bottom">
+      <a class="nav-item" id="exportNavBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+        <span class="nav-tooltip">Export</span>
+      </a>
+      <a class="nav-item" id="logoutBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        <span class="nav-tooltip">Log out</span>
+      </a>
+    </div>
+  </nav>
 
-        <div id="loadingState" class="text-center text-gray-400 py-16">
-            <i class="fas fa-circle-notch fa-spin text-3xl mb-4"></i>
-            <p>Loading your sites...</p>
-        </div>
-
-        <div id="emptyState" class="hidden text-center text-gray-400 py-16 glass-card">
-            <i class="fas fa-solar-panel text-4xl mb-4"></i>
-            <p class="text-lg">No sites configured yet</p>
-            <a href="/setup" class="btn btn-primary inline-block mt-4">Add your first site</a>
-        </div>
-
-        <div id="siteGrid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10"></div>
-
-        <div class="flex justify-center mb-10">
-            <button id="compareBtn" class="btn btn-primary hidden" onclick="compareSelected()">
-                <i class="fas fa-chart-bar"></i> Compare selected sites
-            </button>
-        </div>
-
-        <div id="compareResults" class="hidden">
-            <h2 class="text-2xl font-bold text-white mb-4">Comparison — 30-day generation</h2>
-            <div class="glass-card p-6 mb-6">
-                <canvas id="compareChart" height="90"></canvas>
-            </div>
-            <div id="compareSummary" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-        </div>
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h1>Multi-Grid</h1>
+        <p id="subtitle">Manage every site on your account, or compare two side by side.</p>
+      </div>
+      <a href="/setup" class="btn btn-primary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+        Add site
+      </a>
     </div>
 
-    <script>
-        let allConfigs = [];
-        let selectedForCompare = new Set();
-        let compareChartInstance = null;
+    <div id="loadingState" class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/></svg>
+      <h3>Loading your sites</h3>
+      <p>Fetching every configuration on your account…</p>
+    </div>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadNav();
-            loadConfigs();
-        });
+    <div id="emptyState" class="empty-state" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7v8l10-12h-7V2z"/></svg>
+      <h3>No sites configured yet</h3>
+      <p>Add your first site to start forecasting.</p>
+      <a href="/setup" class="btn btn-primary">Run setup</a>
+    </div>
 
-        async function loadNav() {
-            const res = await fetch('/navigation.html');
-            document.getElementById('nav-container').innerHTML = await res.text();
+    <div id="content" style="display:none;">
+      <div class="site-grid" id="siteGrid"></div>
+
+      <div class="compare-results" id="compareResults">
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Comparison — 30-day generation</h2>
+              <div class="sub" id="compareSub"></div>
+            </div>
+          </div>
+          <div class="chart-wrap"><canvas id="compareChart"></canvas></div>
+        </div>
+        <div class="compare-summary" id="compareSummary"></div>
+      </div>
+    </div>
+  </main>
+
+  <div class="compare-bar" id="compareBar">
+    <span><b id="compareCount">0</b> selected</span>
+    <button class="btn btn-primary" onclick="compareSelected()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 13l4-4 3 3 5-6"/></svg>
+      Compare
+    </button>
+    <button class="btn" onclick="clearSelection()">Clear</button>
+  </div>
+
+  <div class="toast" id="toast"><span class="dot"></span><span id="toastMsg"></span></div>
+
+<script>
+  let allConfigs = [];
+  let selected = new Set();
+  let compareChart = null;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('exportNavBtn').addEventListener('click', exportForecast);
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+    loadConfigs();
+  });
+
+  async function loadConfigs(){
+    try{
+      const res = await fetch('/api/user/configurations');
+      const data = await res.json();
+      allConfigs = data.configurations || [];
+
+      document.getElementById('loadingState').style.display = 'none';
+
+      if(allConfigs.length === 0){
+        document.getElementById('emptyState').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('content').style.display = 'block';
+      document.getElementById('subtitle').textContent =
+        `${allConfigs.length} site${allConfigs.length === 1 ? '' : 's'} on your account.` +
+        (allConfigs.length > 1 ? ' Select two or more to compare.' : '');
+      renderGrid();
+    } catch(e){
+      document.getElementById('loadingState').innerHTML =
+        '<p style="color:var(--danger);">Could not load your sites. Please refresh.</p>';
+    }
+  }
+
+  function renderGrid(){
+    const grid = document.getElementById('siteGrid');
+    grid.innerHTML = allConfigs.map(cfg => {
+      const loc = cfg.config_data.location || {};
+      const solar = cfg.config_data.solar || {};
+      const wind = cfg.config_data.wind || {};
+      const battery = cfg.config_data.battery || {};
+      const checked = selected.has(cfg.id) ? 'checked' : '';
+      return `
+      <div class="site-card ${cfg.is_active ? 'is-active' : ''}" id="card-${cfg.id}">
+        <div class="site-accent"></div>
+        <div class="card-head">
+          <div>
+            <h3>${cfg.name}</h3>
+            <div class="loc">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              ${loc.latitude ?? '—'}, ${loc.longitude ?? '—'}
+            </div>
+          </div>
+          ${cfg.is_active ? '<span class="active-badge"><span class="dot"></span>Active</span>' : ''}
+        </div>
+        <div class="spec-list">
+          <div class="spec-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v3M12 18v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M3 12h3M18 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/><circle cx="12" cy="12" r="4"/></svg>
+            Solar array <span class="spec-val">${solar.panel_count || 0} &times; ${solar.panel_power || 0}W</span>
+          </div>
+          <div class="spec-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.6 4a2 2 0 113.2 2.4L4 15"/><path d="M14.4 20a2 2 0 11-3.2-2.4L20 9"/><path d="M12 12L4 4"/></svg>
+            Turbines <span class="spec-val">${wind.turbine_count || 0} &times; ${((wind.rated_power||0)/1000)}kW</span>
+          </div>
+          <div class="spec-row">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="18" height="10" rx="2"/><path d="M22 11v2"/></svg>
+            Battery <span class="spec-val">${battery.battery_capacity || 0} kWh</span>
+          </div>
+        </div>
+        <div class="card-foot">
+          <label class="compare-check">
+            <input type="checkbox" ${checked} onchange="toggleSelect(${cfg.id}, this.checked)">
+            Compare
+          </label>
+          <button class="make-active-btn ${cfg.is_active ? 'active' : 'inactive'}"
+                  ${cfg.is_active ? 'disabled' : ''}
+                  onclick="setActive(${cfg.id})">
+            ${cfg.is_active ? 'Active' : 'Make active'}
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function toggleSelect(id, checked){
+    if(checked) selected.add(id); else selected.delete(id);
+    document.getElementById('compareCount').textContent = selected.size;
+    document.getElementById('compareBar').classList.toggle('show', selected.size >= 1);
+  }
+
+  function clearSelection(){
+    selected.clear();
+    document.querySelectorAll('.compare-check input').forEach(cb => cb.checked = false);
+    document.getElementById('compareBar').classList.remove('show');
+    document.getElementById('compareResults').classList.remove('show');
+  }
+
+  async function setActive(configId){
+    try{
+      const res = await fetch('/api/setup/set-active', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({config_id: configId})
+      });
+      if(!res.ok) throw new Error();
+      await loadConfigs();
+      showToast('Active site updated');
+    } catch(e){
+      showToast('Could not switch site', true);
+    }
+  }
+
+  async function compareSelected(){
+    if(selected.size < 2){
+      showToast('Select at least 2 sites to compare', true);
+      return;
+    }
+    const ids = Array.from(selected).join(',');
+    try{
+      const res = await fetch(`/api/setup/compare?configs=${ids}`);
+      const data = await res.json();
+      renderComparison(data.configurations || []);
+    } catch(e){
+      showToast('Comparison failed', true);
+    }
+  }
+
+  function renderComparison(configs){
+    const results = document.getElementById('compareResults');
+    results.classList.add('show');
+    document.getElementById('compareSub').textContent = `${configs.length} sites`;
+
+    const colors = ['#E8934A', '#3DDBD9', '#5FD98A', '#E8636A', '#A78BFA'];
+    const labels = configs[0]?.forecast.map(d => d.date.slice(5)) || [];
+
+    const datasets = configs.map((cfg, i) => ({
+      label: cfg.name,
+      data: cfg.forecast.map(d => d.total_generation),
+      borderColor: colors[i % colors.length],
+      backgroundColor: colors[i % colors.length] + '22',
+      fill: false, tension: .35, pointRadius: 0, borderWidth: 2
+    }));
+
+    compareChart?.destroy();
+    compareChart = new Chart(document.getElementById('compareChart'), {
+      type:'line',
+      data:{ labels, datasets },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        interaction:{mode:'index', intersect:false},
+        plugins:{ legend:{ labels:{ color:'#8B93A7', font:{family:'Inter', size:11} } } },
+        scales:{
+          x:{ grid:{color:'#1A2540'}, ticks:{color:'#8B93A7', font:{family:'IBM Plex Mono', size:10}} },
+          y:{ grid:{color:'#1A2540'}, ticks:{color:'#8B93A7', font:{family:'IBM Plex Mono', size:10}} }
         }
+      }
+    });
 
-        async function loadConfigs() {
-            try {
-                const res = await fetch('/api/user/configurations');
-                const data = await res.json();
-                allConfigs = data.configurations || [];
+    document.getElementById('compareSummary').innerHTML = configs.map(cfg => `
+      <div class="summary-card">
+        <h4>${cfg.name}</h4>
+        <div class="row"><span>30-day total</span><b>${cfg.total_30day_generation} kWh</b></div>
+        <div class="row"><span>Average daily</span><b>${cfg.average_daily_generation} kWh</b></div>
+      </div>
+    `).join('');
 
-                document.getElementById('loadingState').classList.add('hidden');
+    results.scrollIntoView({ behavior:'smooth', block:'start' });
+  }
 
-                if (allConfigs.length === 0) {
-                    document.getElementById('emptyState').classList.remove('hidden');
-                    return;
-                }
+  function exportForecast(){
+    const fmt = prompt('Export format: csv, json, or xlsx', 'csv');
+    if(!fmt) return;
+    const clean = fmt.trim().toLowerCase();
+    if(!['csv','json','xlsx'].includes(clean)){
+      showToast('Format must be csv, json, or xlsx', true);
+      return;
+    }
+    window.location.href = `/api/export?format=${clean}`;
+    showToast('Preparing your export…');
+  }
 
-                renderGrid();
-                document.getElementById('siteGrid').classList.remove('hidden');
-                if (allConfigs.length > 1) {
-                    document.getElementById('compareBtn').classList.remove('hidden');
-                }
-            } catch (e) {
-                document.getElementById('loadingState').innerHTML =
-                    '<p class="text-red-400">Failed to load sites. Please refresh.</p>';
-            }
-        }
+  async function logout(){
+    await fetch('/logout', {method:'POST'});
+    window.location.href = '/';
+  }
 
-        function renderGrid() {
-            const grid = document.getElementById('siteGrid');
-            grid.innerHTML = allConfigs.map(cfg => {
-                const loc = cfg.config_data.location || {};
-                const solar = cfg.config_data.solar || {};
-                const wind = cfg.config_data.wind || {};
-                const battery = cfg.config_data.battery || {};
-                return `
-                <div class="site-card p-6 ${cfg.is_active ? 'active-site' : ''}" id="card-${cfg.id}">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="text-lg font-bold text-white">${cfg.name}</h3>
-                            <p class="text-sm text-gray-400">
-                                <i class="fas fa-map-marker-alt"></i>
-                                ${loc.latitude || '—'}, ${loc.longitude || '—'}
-                            </p>
-                        </div>
-                        ${cfg.is_active ? '<span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">Active</span>' : ''}
-                    </div>
-                    <div class="space-y-1 text-sm text-gray-300 mb-4">
-                        <p><i class="fas fa-solar-panel w-5 text-yellow-400"></i> ${solar.panel_count || 0} panels &times; ${solar.panel_power || 0}W</p>
-                        <p><i class="fas fa-wind w-5 text-blue-400"></i> ${wind.turbine_count || 0} turbines &times; ${wind.rated_power || 0}W</p>
-                        <p><i class="fas fa-battery-half w-5 text-green-400"></i> ${battery.battery_capacity || 0} kWh storage</p>
-                    </div>
-                    <div class="flex items-center justify-between gap-2">
-                        <label class="flex items-center gap-2 text-sm text-gray-400">
-                            <input type="checkbox" class="checkbox-compare" onchange="toggleCompare(${cfg.id}, this.checked)">
-                            Compare
-                        </label>
-                        <button class="btn ${cfg.is_active ? 'btn-success' : 'btn-primary'}"
-                                ${cfg.is_active ? 'disabled' : ''}
-                                onclick="setActive(${cfg.id})">
-                            ${cfg.is_active ? '<i class="fas fa-check"></i> Active' : 'Make Active'}
-                        </button>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        function toggleCompare(configId, checked) {
-            if (checked) selectedForCompare.add(configId);
-            else selectedForCompare.delete(configId);
-        }
-
-        async function setActive(configId) {
-            try {
-                const res = await fetch('/api/setup/set-active', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ config_id: configId })
-                });
-                if (!res.ok) throw new Error('Failed to switch site');
-                await loadConfigs();
-            } catch (e) {
-                alert('Could not switch active site: ' + e.message);
-            }
-        }
-
-        async function compareSelected() {
-            if (selectedForCompare.size < 2) {
-                alert('Select at least 2 sites to compare.');
-                return;
-            }
-            const ids = Array.from(selectedForCompare).join(',');
-            try {
-                const res = await fetch(`/api/setup/compare?configs=${ids}`);
-                const data = await res.json();
-                renderComparison(data.configurations || []);
-            } catch (e) {
-                alert('Comparison failed: ' + e.message);
-            }
-        }
-
-        function renderComparison(configs) {
-            document.getElementById('compareResults').classList.remove('hidden');
-
-            const colors = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#a855f7'];
-            const labels = configs[0]?.forecast.map(d => d.date) || [];
-
-            const datasets = configs.map((cfg, i) => ({
-                label: cfg.name,
-                data: cfg.forecast.map(d => d.total_generation),
-                borderColor: colors[i % colors.length],
-                backgroundColor: colors[i % colors.length] + '33',
-                fill: false,
-                tension: 0.3
-            }));
-
-            if (compareChartInstance) compareChartInstance.destroy();
-            compareChartInstance = new Chart(document.getElementById('compareChart'), {
-                type: 'line',
-                data: { labels, datasets },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { labels: { color: '#fff' } } },
-                    scales: {
-                        x: { ticks: { color: '#aaa' } },
-                        y: { ticks: { color: '#aaa' } }
-                    }
-                }
-            });
-
-            const summary = document.getElementById('compareSummary');
-            summary.innerHTML = configs.map(cfg => `
-                <div class="glass-card p-6">
-                    <h4 class="text-lg font-bold text-white mb-2">${cfg.name}</h4>
-                    <p class="text-gray-400 text-sm mb-1">30-day total: <span class="text-white font-semibold">${cfg.total_30day_generation} kWh</span></p>
-                    <p class="text-gray-400 text-sm">Average daily: <span class="text-white font-semibold">${cfg.average_daily_generation} kWh</span></p>
-                </div>
-            `).join('');
-        }
-    </script>
+  let toastTimer;
+  function showToast(msg, isError){
+    const toast = document.getElementById('toast');
+    document.getElementById('toastMsg').textContent = msg;
+    toast.classList.toggle('error', !!isError);
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
+  }
+</script>
 </body>
 </html>
