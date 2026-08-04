@@ -3,7 +3,7 @@ from flask_login import login_user
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
-from models import User, UserSession, db
+from models import User, UserSession, SystemConfiguration, db
 from auth import authenticate_user, create_user_session
 import os
 import json
