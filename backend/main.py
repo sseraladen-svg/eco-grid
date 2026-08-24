@@ -25,7 +25,7 @@ from auth import init_auth, authenticate_user, register_user, logout_user_sessio
 from google_auth import init_google_auth
 from forecasting.forecast_generation import generate_forecast
 from training.train_prophet import train_prophet as train_prophet_model
-from forecast import register_forecast_routes
+from forecast import register_forecast_routes, calculate_forecast_statistics
 from multigrid import register_multigrid_routes
 from export import register_export_routes
 from weather import fetch_and_cache_weather
@@ -205,6 +205,8 @@ def submit_setup():
     """Save system configuration for current user"""
     try:
         config = request.json
+        print(f"DEBUG: Setup data received: {config}")  # Fix 3: Log setup data for debugging
+        print(f"DEBUG: Solar panel_power in setup: {config.get('solar', {}).get('panel_power')}")  # Fix 3: Check panel_power
         
         # Save configuration to database
         system_config = SystemConfiguration(
@@ -421,11 +423,14 @@ def get_forecast():
             
             # Parse user configuration
             config = json.loads(active_config.config_data)
+            print(f"DEBUG: Config data received: {config}")  # Fix 3: Log config data for debugging
             solar_config = config.get('solar', {})
             wind_config = config.get('wind', {})
             battery_config = config.get('battery', {})
             consumption_config = config.get('consumption', {})
             location_config = config.get('location', {})
+            print(f"DEBUG: Solar config - panel_power: {solar_config.get('panel_power')}, panel_count: {solar_config.get('panel_count')}")  # Fix 3: Check panel_power
+            print(f"DEBUG: Battery config - capacity: {battery_config.get('battery_capacity')}")  # Fix 3: Check battery capacity
             
             # Extract parameters
             panel_count = int(solar_config.get('panel_count', 20))
@@ -453,10 +458,9 @@ def get_forecast():
                 solar_declination = 23.45 * math.sin(math.radians(360 * (284 + i) / 365))
                 solar_altitude = math.radians(90 - abs(latitude - solar_declination))
                 
-                # Solar generation calculation
-                solar_irradiance = max(0, 1000 * math.sin(solar_altitude))  # W/m²
-                solar_generation = (panel_count * panel_power * panel_efficiency * 
-                                  solar_irradiance / 1000 * 0.8) / 1000  # kWh
+                # Solar generation calculation - Fix 1: Integrate over the day using peak sun hours
+                peak_sun_hours = max(0, 5.5 * math.sin(solar_altitude))  # daily insolation proxy, hrs
+                solar_generation = (panel_count * panel_power / 1000) * peak_sun_hours * 0.8  # kWh/day
                 solar_generation = max(0, solar_generation)  # Ensure solar generation is never negative
                 
                 # Wind generation calculation with daily variation
@@ -488,15 +492,15 @@ def get_forecast():
                 })
             
             print(f"Generated {len(forecast_data)} real forecast records based on user parameters")
+            
+            # Fix 5: Use real statistics calculation from forecast.py
+            statistics = calculate_forecast_statistics(forecast_data)
+            statistics['peak_prediction'] = max(d["total_generation"] for d in forecast_data)
+            
             return jsonify({
                 "status": "success",
                 "forecast": forecast_data,
-                "statistics": {
-                    "accuracy": 85.0,
-                    "trend_direction": "increasing",
-                    "volatility": 0.15,
-                    "peak_prediction": max(d["total_generation"] for d in forecast_data)
-                }
+                "statistics": statistics
             })
         
         # Read actual forecast data if file exists - with validation
@@ -519,15 +523,15 @@ def get_forecast():
             validated_result.append(validated_row)
         
         print(f"Loaded and validated {len(validated_result)} actual forecast records")
+        
+        # Fix 5: Use real statistics calculation from forecast.py
+        statistics = calculate_forecast_statistics(validated_result)
+        statistics['peak_prediction'] = max(d.get("total_generation", 0) for d in validated_result)
+        
         return jsonify({
             "status": "success",
             "forecast": validated_result,
-            "statistics": {
-                "accuracy": 85.0,
-                "trend_direction": "increasing",
-                "volatility": 0.15,
-                "peak_prediction": max(d.get("total_generation", 0) for d in validated_result)
-            }
+            "statistics": statistics
         })
         
     except Exception as e:
