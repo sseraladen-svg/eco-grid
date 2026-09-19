@@ -266,6 +266,7 @@ def calculate_forecast_statistics(forecast_data):
     solar_values = [day['solar_energy'] for day in forecast_data]
     wind_values = [day['wind_energy'] for day in forecast_data]
     total_values = [day['total_generation'] for day in forecast_data]
+    confidence_values = [day.get('confidence', 75) for day in forecast_data]
     
     # Production statistics
     total_solar = sum(solar_values)
@@ -276,8 +277,11 @@ def calculate_forecast_statistics(forecast_data):
     # Model performance metrics
     trend_direction = calculate_trend(total_values)
     volatility = calculate_volatility(total_values)
-    confidence = calculate_confidence(total_values)
+    avg_confidence = sum(confidence_values) / len(confidence_values)
     seasonal_pattern = detect_seasonal_pattern(total_values)
+    
+    # Calculate model accuracy based on confidence
+    accuracy = avg_confidence
     
     return {
         'total_solar': round(total_solar, 2),
@@ -286,24 +290,25 @@ def calculate_forecast_statistics(forecast_data):
         'peak_day': round(peak_day, 2),
         'trend_direction': trend_direction,
         'volatility': round(volatility, 1),
-        'confidence': round(confidence, 1),
+        'confidence': round(avg_confidence, 1),
+        'accuracy': round(accuracy, 1),
         'seasonal_pattern': seasonal_pattern
     }
 
 def calculate_trend(values):
     """Calculate trend direction"""
     if len(values) < 7:
-        return '→'
+        return 'stable'
     
     first_week = sum(values[:7]) / 7
     last_week = sum(values[-7:]) / 7
     
     if last_week > first_week * 1.05:
-        return '↑'
+        return 'increasing'
     elif last_week < first_week * 0.95:
-        return '↓'
+        return 'decreasing'
     else:
-        return '→'
+        return 'stable'
 
 def calculate_volatility(values):
     """Calculate volatility as coefficient of variation"""

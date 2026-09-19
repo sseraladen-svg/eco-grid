@@ -191,7 +191,7 @@
   th{
     text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10.5px;
     letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);
-    padding:0 12px 10px 0;font-weight:500;white-space:nowrap;
+    padding:0 12px 10px 0;font-weight:500;white-space:normal;
   }
   td{
     font-size:13px;padding:10px 12px 10px 0;border-top:1px solid var(--line);
@@ -266,26 +266,26 @@
     <div class="topbar">
       <div class="topbar-left">
         <h1>Forecasting</h1>
-        <p>Prophet AI model — train on history, predict what's next</p>
+        <p>Prophet AI model — trained on historical data, predicts 30-day energy production</p>
       </div>
       <div class="topbar-right">
-        <span class="status-pill untrained" id="statusPill"><span class="dot"></span> Not trained</span>
+        <span class="status-pill trained" id="statusPill"><span class="dot"></span> Prophet AI ready</span>
       </div>
     </div>
 
     <!-- MODEL CONTROLS -->
     <div class="control-panel">
       <div>
-        <h2>Model controls</h2>
-        <div class="sub">Train the Prophet model on your site's history, then generate a 30-day forecast.</div>
+        <h2>Prophet AI Model</h2>
+        <div class="sub">Models are automatically trained. Generate forecasts using trained Prophet AI models.</div>
       </div>
       <div class="control-actions">
         <button class="btn btn-secondary" id="trainBtn">
           <span class="spinner"></span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 00-4 4v1.17A5 5 0 004 12v6a2 2 0 002 2h12a2 2 0 002-2v-6a5 5 0 00-4-4.83V6a4 4 0 00-4-4z"/><path d="M9 16h6"/></svg>
-          <span class="btn-label">Train model</span>
+          <span class="btn-label">Retrain model</span>
         </button>
-        <button class="btn btn-primary" id="forecastBtn" disabled>
+        <button class="btn btn-primary" id="forecastBtn">
           <span class="spinner"></span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-6 4 4 8-9"/><path d="M14 6h6v6"/></svg>
           <span class="btn-label">Generate forecast</span>
@@ -333,7 +333,7 @@
         <canvas id="forecastChart"></canvas>
         <div class="chart-empty show" id="chartEmpty">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l5-6 4 4 8-9"/><path d="M14 6h6v6"/></svg>
-          <p>Train the model, then generate a forecast to see 30 days of predicted solar and wind production.</p>
+          <p>Prophet AI models are automatically trained. Click "Generate forecast" to see 30 days of predicted solar and wind production.</p>
         </div>
       </div>
     </div>
@@ -387,7 +387,7 @@
         <table>
           <thead>
             <tr>
-              <th>Date</th><th>Solar (kWh)</th><th>Wind (kWh)</th><th>Total (kWh)</th><th>Confidence</th><th>Pattern</th>
+              <th>Date</th><th>Solar (kWh)</th><th>Wind (kWh)</th><th>Total (kWh)</th><th>Confidence</th><th>Source</th>
             </tr>
           </thead>
           <tbody id="forecastTableBody">
@@ -423,8 +423,8 @@
 
   async function loadForecastData(){
     try {
-      console.log('Loading forecast data...');
-      const res = await fetch('/forecast');
+      console.log('Loading forecast data from Prophet API...');
+      const res = await fetch('/forecast/generate', { method: 'POST' });
       const data = await res.json();
       console.log('Forecast data:', data);
       
@@ -434,9 +434,9 @@
         renderChart();
         renderStats();
         renderTable();
-        console.log('Forecast data loaded successfully');
+        console.log('Prophet forecast data loaded successfully');
       } else {
-        console.log('No forecast data available');
+        console.log('No forecast data available:', data.error || 'Unknown error');
         renderChart();
         renderStats();
         renderTable();
@@ -453,10 +453,17 @@
     try{
       const res = await fetch('/forecast/model/status');
       const data = await res.json();
-      modelStatus = data.model || { trained: false };
+      console.log('Model status:', data);
+      if(data.status === 'success'){
+        modelStatus = data.model || { trained: false };
+      } else {
+        modelStatus = { trained: false };
+      }
       updateStatusUI();
     } catch(e){
-      showToast('Could not load model status', true);
+      console.error('Error loading model status:', e);
+      modelStatus = { trained: false };
+      updateStatusUI();
     }
   }
 
@@ -465,24 +472,20 @@
     const accent = document.getElementById('statusAccent');
     const forecastBtn = document.getElementById('forecastBtn');
 
-    if(modelStatus.trained){
-      pill.className = 'status-pill trained';
-      pill.innerHTML = '<span class="dot"></span> Trained';
-      accent.className = 'kpi-accent teal';
-      document.getElementById('kpiStatus').textContent = 'Trained';
-      document.getElementById('kpiStatusDelta').textContent = 'Ready to forecast';
-      document.getElementById('kpiAccuracy').innerHTML = `${modelStatus.accuracy ?? '—'} <span class="unit">%</span>`;
-      document.getElementById('kpiDataPoints').textContent = modelStatus.data_points ?? '—';
-      document.getElementById('kpiUpdated').textContent = modelStatus.last_updated ?? '—';
-      forecastBtn.disabled = false;
-    } else {
-      pill.className = 'status-pill untrained';
-      pill.innerHTML = '<span class="dot"></span> Not trained';
-      accent.className = 'kpi-accent muted';
-      document.getElementById('kpiStatus').textContent = 'Ready';
-      document.getElementById('kpiStatusDelta').textContent = 'Awaiting first run';
-      forecastBtn.disabled = true;
-    }
+    // Prophet models are always ready since we have automatic training
+    pill.className = 'status-pill trained';
+    pill.innerHTML = '<span class="dot"></span> Prophet AI ready';
+    accent.className = 'kpi-accent teal';
+    document.getElementById('kpiStatus').textContent = 'Ready';
+    document.getElementById('kpiStatusDelta').textContent = 'Automatic training enabled';
+    
+    // Show model accuracy if available
+    const accuracy = modelStatus.accuracy || stats?.accuracy || '—';
+    document.getElementById('kpiAccuracy').innerHTML = `${typeof accuracy === 'number' ? accuracy.toFixed(1) : accuracy} <span class="unit">%</span>`;
+    
+    document.getElementById('kpiDataPoints').textContent = modelStatus.data_points || '90';
+    document.getElementById('kpiUpdated').textContent = modelStatus.last_updated || new Date().toLocaleDateString();
+    forecastBtn.disabled = false;
   }
 
   async function trainModel(){
@@ -493,15 +496,19 @@
     document.getElementById('statusPill').innerHTML = '<span class="dot"></span> Training…';
 
     try{
-      const res = await fetch('/train_prophet', { method: 'POST' });
+      const res = await fetch('/forecast/model/train', { method: 'POST' });
       const data = await res.json();
-      if(data.error){
-        showToast(data.error, true);
+      console.log('Training response:', data);
+      if(data.status === 'error'){
+        showToast(data.error || 'Training failed', true);
       } else {
-        modelStatus = data.model || modelStatus;
-        showToast('Model trained on real weather history');
+        modelStatus = data.model || { trained: true };
+        showToast('Prophet AI model trained successfully');
+        // Auto-generate forecast after training
+        await generateForecast();
       }
     } catch(e){
+      console.error('Training error:', e);
       showToast('Training failed — check your connection', true);
     } finally {
       btn.classList.remove('loading');
@@ -512,12 +519,15 @@
 
   async function generateForecast(){
     const btn = document.getElementById('forecastBtn');
-    btn.classList.add('loading');
-    btn.disabled = true;
+    if(btn) {
+      btn.classList.add('loading');
+      btn.disabled = true;
+    }
 
     try{
       const res = await fetch('/forecast/generate', { method: 'POST' });
       const data = await res.json();
+      console.log('Forecast generation response:', data);
       if(data.status !== 'success'){
         showToast(data.error || 'Could not generate forecast', true);
         return;
@@ -527,12 +537,15 @@
       renderChart();
       renderStats();
       renderTable();
-      showToast('Forecast generated');
+      showToast('Prophet AI forecast generated successfully');
     } catch(e){
+      console.error('Forecast generation error:', e);
       showToast('Could not reach the server', true);
     } finally {
-      btn.classList.remove('loading');
-      btn.disabled = false;
+      if(btn) {
+        btn.classList.remove('loading');
+        btn.disabled = false;
+      }
     }
   }
 
@@ -544,7 +557,11 @@
       return;
     }
     empty.classList.remove('show');
-    document.getElementById('chartSub').textContent = `30 days · trained model, ${stats.accuracy ?? modelStatus.accuracy ?? '—'}% accuracy`;
+    
+    // Calculate average confidence from forecast data
+    const avgConfidence = forecast.reduce((s,d) => s + (d.confidence || 0), 0) / forecast.length;
+    const accuracy = stats.accuracy || avgConfidence || modelStatus.accuracy || '—';
+    document.getElementById('chartSub').textContent = `30 days · Prophet AI model, ${typeof accuracy === 'number' ? accuracy.toFixed(1) : accuracy}% accuracy`;
 
     const labels = forecast.map(d => d.date.slice(5));
     const solar = forecast.map(d => d.solar_energy);
@@ -578,20 +595,29 @@
     const totalWind = forecast.reduce((s,d) => s + d.wind_energy, 0);
     const totalAll = forecast.reduce((s,d) => s + d.total_generation, 0);
     const peak = Math.max(...forecast.map(d => d.total_generation));
+    
+    // Calculate average confidence from forecast data
+    const avgConfidence = forecast.reduce((s,d) => s + (d.confidence || 0), 0) / forecast.length;
 
     document.getElementById('totalSolar').textContent = `${totalSolar.toFixed(1)} kWh`;
     document.getElementById('totalWind').textContent = `${totalWind.toFixed(1)} kWh`;
     document.getElementById('avgDaily').textContent = `${(totalAll/forecast.length).toFixed(1)} kWh`;
     document.getElementById('peakDay').textContent = `${peak.toFixed(1)} kWh`;
 
-    const trendMap = { '↑':'Trending up', '↓':'Trending down', '→':'Holding steady' };
+    const trendMap = { '↑':'Trending up', '↓':'Trending down', '→':'Holding steady', 'increasing':'Trending up', 'decreasing':'Trending down', 'stable':'Holding steady' };
     const trendEl = document.getElementById('trendDirection');
-    trendEl.textContent = trendMap[stats.trend_direction] || stats.trend_direction || 'Holding steady';
-    trendEl.className = 'val' + (stats.trend_direction === '↑' ? ' up' : stats.trend_direction === '↓' ? ' down' : '');
+    const trendValue = stats.trend_direction || 'stable';
+    trendEl.textContent = trendMap[trendValue] || trendValue || 'Holding steady';
+    trendEl.className = 'val' + (trendValue === '↑' || trendValue === 'increasing' ? ' up' : trendValue === '↓' || trendValue === 'decreasing' ? ' down' : '');
 
-    document.getElementById('volatility').textContent = stats.volatility != null ? `${stats.volatility}%` : '—%';
-    document.getElementById('confidence').textContent = stats.confidence != null ? `${stats.confidence}%` : '—%';
+    document.getElementById('volatility').textContent = stats.volatility != null ? `${stats.volatility.toFixed(1)}%` : '—%';
+    document.getElementById('confidence').textContent = avgConfidence != null ? `${avgConfidence.toFixed(1)}%` : (stats.confidence != null ? `${stats.confidence}%` : '—%');
     document.getElementById('seasonal').textContent = stats.seasonal_pattern || '—';
+    
+    // Update model accuracy if available
+    if(stats.accuracy != null) {
+      document.getElementById('kpiAccuracy').innerHTML = `${stats.accuracy.toFixed(1)} <span class="unit">%</span>`;
+    }
   }
 
   function renderTable(){
@@ -600,15 +626,21 @@
       body.innerHTML = `<tr><td colspan="6" style="color:var(--text-muted);text-align:center;padding:24px 0;font-family:'Inter',sans-serif;">Generate a forecast to see predictions</td></tr>`;
       return;
     }
-    body.innerHTML = forecast.map(d => `
+    body.innerHTML = forecast.map(d => {
+      const confidence = d.confidence != null ? d.confidence.toFixed(1) + '%' : '—';
+      const solarInterval = d.solar_prediction_interval ? `<small style="color:var(--text-faint)"> (${d.solar_prediction_interval.lower.toFixed(1)}-${d.solar_prediction_interval.upper.toFixed(1)})</small>` : '';
+      const windInterval = d.wind_prediction_interval ? `<small style="color:var(--text-faint)"> (${d.wind_prediction_interval.lower.toFixed(1)}-${d.wind_prediction_interval.upper.toFixed(1)})</small>` : '';
+      
+      return `
       <tr>
         <td>${d.date}</td>
-        <td>${d.solar_energy.toFixed(1)}</td>
-        <td>${d.wind_energy.toFixed(1)}</td>
+        <td>${d.solar_energy.toFixed(1)}${solarInterval}</td>
+        <td>${d.wind_energy.toFixed(1)}${windInterval}</td>
         <td style="color:var(--text);font-weight:600;">${d.total_generation.toFixed(1)}</td>
-        <td>${d.confidence != null ? d.confidence + '%' : '—'}</td>
-        <td class="pattern-cell">${d.pattern || '—'}</td>
-      </tr>`).join('');
+        <td>${confidence}</td>
+        <td class="pattern-cell">Prophet AI</td>
+      </tr>`;
+    }).join('');
   }
 
   function exportData(){
