@@ -1,9 +1,12 @@
 import pandas as pd
+import numpy as np
 from prophet import Prophet
 import json
 import sys
 import os
 import sqlite3
+import pickle
+from datetime import datetime, timedelta
 
 # Add parent directory to path for imports
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -12,7 +15,16 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 def train_prophet():
     """Train Prophet model and convert irradiance to energy (Fix 4)"""
     
-    df = pd.read_csv('data/weather_data.csv')
+    # Use absolute path for data directory
+    data_dir = os.path.join(os.path.dirname(__file__), '..', 'backend', 'data')
+    weather_path = os.path.join(data_dir, 'weather_data.csv')
+    
+    if not os.path.exists(weather_path):
+        print(f"Weather data not found at {weather_path}, creating sample data...")
+        create_sample_weather_data(data_dir)
+        weather_path = os.path.join(data_dir, 'weather_data.csv')
+    
+    df = pd.read_csv(weather_path)
 
     # Get active configuration for panel parameters (Fix 4) - avoid circular import
     panel_count, panel_power = get_panel_config()
@@ -28,14 +40,15 @@ def train_prophet():
     future = model.make_future_dataframe(periods=30)
     forecast = model.predict(future)
 
-    result = forecast[['ds','yhat']]
+    result = forecast[['ds','yhat']].copy()
     
     # Fix 4: Convert irradiance to energy using panel parameters
-    result['yhat'] = result['yhat'].apply(
+    result.loc[:, 'yhat'] = result['yhat'].apply(
         lambda irr: max(0, panel_count * panel_power / 1000 * (irr / 1000) * 5.5 * 0.8)
     )
     
-    result.to_csv('data/solar_forecast.csv', index=False)
+    solar_forecast_path = os.path.join(data_dir, 'solar_forecast.csv')
+    result.to_csv(solar_forecast_path, index=False)
 
     # Wind speed forecast
     wind = df[['date','wind_speed']]
@@ -45,14 +58,21 @@ def train_prophet():
     model_wind.fit(wind)
 
     forecast_wind = model_wind.predict(future)
-    result_wind = forecast_wind[['ds','yhat']]
+    result_wind = forecast_wind[['ds','yhat']].copy()
     
     # Fix 4: Convert wind speed to energy (using the same logic as main.py)
-    result_wind['yhat'] = result_wind['yhat'].apply(
+    result_wind.loc[:, 'yhat'] = result_wind['yhat'].apply(
         lambda speed: max(0, calculate_wind_energy(speed))
     )
     
-    result_wind.to_csv('data/wind_forecast.csv', index=False)
+    wind_forecast_path = os.path.join(data_dir, 'wind_forecast.csv')
+    result_wind.to_csv(wind_forecast_path, index=False)
+    
+    # Save trained models for persistence
+    save_trained_models(model, model_wind, data_dir)
+    
+    print(f"Training completed. Models saved to {data_dir}")
+    return True
 
 
 def get_panel_config():
@@ -108,3 +128,82 @@ def calculate_wind_energy(wind_speed):
                 (wind_speed / 12) ** 3) / 1000  # kWh
     else:
         return 0
+
+def create_sample_weather_data(data_dir):
+    """Create sample weather data for training if none exists"""
+    os.makedirs(data_dir, exist_ok=True)
+    
+    # Generate 90 days of historical weather data
+    dates = []
+    solar_radiation = []
+    wind_speed = []
+    temperature = []
+    
+    base_date = datetime.now() - timedelta(days=90)
+    
+    for i in range(90):
+        current_date = base_date + timedelta(days=i)
+        dates.append(current_date.strftime('%Y-%m-%d'))
+        
+        # Simulate realistic weather patterns
+        day_of_year = current_date.timetuple().tm_yday
+        seasonal_factor = 0.7 + 0.3 * np.sin(2 * np.pi * day_of_year / 365)
+        
+        # Solar radiation with daily and seasonal variation
+        daily_solar = 5.0 * seasonal_factor * (0.8 + 0.2 * np.random.random())
+        solar_radiation.append(round(daily_solar, 2))
+        
+        # Wind speed with more variability
+        daily_wind = 3.5 * (0.6 + 0.4 * np.random.random())
+        wind_speed.append(round(daily_wind, 2))
+        
+        # Temperature
+        daily_temp = 20 + 10 * seasonal_factor + np.random.normal(0, 2)
+        temperature.append(round(daily_temp, 2))
+    
+    # Create DataFrame
+    weather_df = pd.DataFrame({
+        'date': dates,
+        'solar_radiation': solar_radiation,
+        'wind_speed': wind_speed,
+        'temperature': temperature
+    })
+    
+    weather_path = os.path.join(data_dir, 'weather_data.csv')
+    weather_df.to_csv(weather_path, index=False)
+    print(f"Created sample weather data with {len(weather_df)} records at {weather_path}")
+    
+    return weather_df
+
+def save_trained_models(solar_model, wind_model, data_dir):
+    """Save trained Prophet models to disk"""
+    os.makedirs(data_dir, exist_ok=True)
+    
+    solar_model_path = os.path.join(data_dir, 'solar_prophet_model.pkl')
+    wind_model_path = os.path.join(data_dir, 'wind_prophet_model.pkl')
+    
+    with open(solar_model_path, 'wb') as f:
+        pickle.dump(solar_model, f)
+    
+    with open(wind_model_path, 'wb') as f:
+        pickle.dump(wind_model, f)
+    
+    print(f"Saved trained models: {solar_model_path}, {wind_model_path}")
+
+def load_trained_models(data_dir):
+    """Load trained Prophet models from disk"""
+    solar_model_path = os.path.join(data_dir, 'solar_prophet_model.pkl')
+    wind_model_path = os.path.join(data_dir, 'wind_prophet_model.pkl')
+    
+    if os.path.exists(solar_model_path) and os.path.exists(wind_model_path):
+        with open(solar_model_path, 'rb') as f:
+            solar_model = pickle.load(f)
+        
+        with open(wind_model_path, 'rb') as f:
+            wind_model = pickle.load(f)
+        
+        print(f"Loaded trained models from {data_dir}")
+        return solar_model, wind_model
+    else:
+        print("No trained models found")
+        return None, None

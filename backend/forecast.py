@@ -16,6 +16,7 @@ from pathlib import Path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from training.train_prophet import train_prophet as train_prophet_model
+from forecasting.forecast_generation import generate_forecast
 from models import SystemConfiguration
 
 # Get the correct data directory
@@ -122,21 +123,31 @@ def train_model():
 
 @forecast_bp.route('/generate', methods=['POST'])
 @login_required
-def generate_forecast():
+def generate_prophet_forecast():
     """Generate energy forecast using Prophet AI model"""
     try:
         print("Generating Prophet AI energy forecast...")
         
-        # Check if models exist, train if needed
-        solar_model_path = DATA_DIR / "solar_forecast.csv"
-        wind_model_path = DATA_DIR / "wind_forecast.csv"
+        # Get user's active configuration
+        active_config = SystemConfiguration.query.filter_by(
+            user_id=current_user.id, 
+            is_active=True
+        ).first()
         
-        if not os.path.exists(solar_model_path) or not os.path.exists(wind_model_path):
-            print("No trained models found, training automatically...")
-            train_prophet_model()
+        if not active_config:
+            return jsonify({
+                'status': 'error',
+                'error': 'No active configuration found. Please complete setup first.'
+            }), 400
         
-        # Generate forecast data
-        forecast_data = generate_prophet_forecast_data()
+        # Parse configuration
+        config = json.loads(active_config.config_data)
+        
+        # Generate forecast using the updated function
+        forecast_df = generate_forecast(config)
+        
+        # Convert DataFrame to list of dictionaries
+        forecast_data = forecast_df.to_dict('records')
         
         # Calculate statistics
         statistics = calculate_forecast_statistics(forecast_data)
@@ -190,7 +201,8 @@ def generate_prophet_forecast_data():
                 "wind_energy": round(wind_val, 2),
                 "total_generation": round(total_generation, 2),
                 "demand": round(25 + (i % 15) * 2, 2),  # Simulated demand
-                "battery_storage": round(60 + (i % 20) * 2, 2)  # Simulated battery
+                "battery_storage": round(60 + (i % 20) * 2, 2),  # Simulated battery
+                "confidence": 75.0  # Default confidence for fallback
             })
         
         return forecast_data

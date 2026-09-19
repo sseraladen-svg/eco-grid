@@ -356,18 +356,24 @@ def submit_setup():
         db.session.add(system_config)
         db.session.commit()
         
-        # Generate forecast in background
+        # Train Prophet models and generate forecast in background
         try:
+            print("Training Prophet models after setup...")
+            train_prophet_model()
+            print("Prophet models trained successfully")
+            
             generate_forecast(config)
             return jsonify({
                 "status": "success", 
-                "message": "Setup saved and forecast generated",
+                "message": "Setup saved, Prophet models trained, and forecast generated",
                 "config_id": system_config.id
             })
         except Exception as e:
+            print(f"Error during model training/forecast: {e}")
+            # Still return success even if training fails
             return jsonify({
                 "status": "success", 
-                "message": f"Setup saved, forecast generation failed: {str(e)}",
+                "message": f"Setup saved. Model training may have failed: {str(e)}",
                 "config_id": system_config.id
             })
             
