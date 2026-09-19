@@ -3,7 +3,6 @@ from flask import session
 from models import User, UserSession, db
 from datetime import datetime, timedelta
 import secrets
-import string
 
 # Initialize login manager
 login_manager = LoginManager()
@@ -129,8 +128,12 @@ def register_user(name, email, password, request=None):
     db.session.add(user)
     db.session.commit()
     
+    # Update last login
+    user.update_last_login()
+    
     # Auto-login after registration
-    authenticate_user(email, password, request)
+    create_user_session(user, request)
+    login_user(user, remember=True)
     
     return user, "Registration successful"
 

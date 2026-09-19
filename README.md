@@ -159,7 +159,6 @@ docker-compose down
 - Tabbed interface for Sign In / Create Account
 - Password strength meter with real-time validation
 - Session management with 7-day persistence
-- Google OAuth integration (optional)
 
 ### **2. Setup Wizard (`/setup`)**
 - 5-step configuration: Location → Solar → Wind → Battery → Consumption
@@ -236,7 +235,6 @@ EcoGrid-AI/
 │   ├── main.py                # Main application & routing
 │   ├── models.py              # SQLAlchemy database models
 │   ├── auth.py                # Authentication system
-│   ├── google_auth.py         # Google OAuth integration
 │   ├── forecast.py            # Prophet AI forecasting
 │   ├── multigrid.py           # Multi-grid management
 │   ├── export.py              # Data export functionality
@@ -281,10 +279,6 @@ SECRET_KEY=your-secret-key-change-in-production
 
 # Database
 DATABASE_URL=sqlite:///backend/ecogrid.db
-
-# Google OAuth (Optional)
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
 
 # Flask Configuration
 FLASK_ENV=production
@@ -456,10 +450,6 @@ pip install -r requirements.txt
 **4. Port Already in Use**
 - **Issue**: Port 5000 already in use
 - **Solution**: Change port in `main.py` or stop conflicting service
-
-**5. Google OAuth Not Working**
-- **Issue**: Missing or incorrect Google credentials
-- **Solution**: Configure `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env`
 
 ---
 

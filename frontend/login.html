@@ -286,32 +286,6 @@
   }
   .banner.show{display:flex;}
 
-  .divider{
-    display:flex;align-items:center;gap:12px;
-    margin:24px 0;
-    color:var(--text-muted);
-    font-size:12px;
-  }
-  .divider::before,.divider::after{
-    content:'';flex:1;height:1px;background:var(--line);
-  }
-
-  .google-btn{
-    width:100%;
-    padding:11px 0;
-    border:1px solid var(--line);
-    border-radius:9px;
-    background:transparent;
-    color:var(--text);
-    font-family:'Inter',sans-serif;
-    font-weight:600;
-    font-size:13.5px;
-    cursor:pointer;
-    display:flex;align-items:center;justify-content:center;gap:10px;
-    transition:border-color .15s ease, background .15s ease;
-  }
-  .google-btn:hover{border-color:#3A4A70;background:rgba(255,255,255,0.02);}
-
   .foot-note{
     margin-top:28px;
     text-align:center;
@@ -422,13 +396,6 @@
           <span class="btn-label" id="submitLabel">Sign in</span>
         </button>
       </form>
-
-      <div class="divider">or</div>
-
-      <button type="button" class="google-btn" onclick="window.location.href='/auth/google'">
-        <svg width="16" height="16" viewBox="0 0 16 16"><path fill="#EA4335" d="M8.16 6.55v2.9h4.03c-.16 1.03-1.2 3.02-4.03 3.02-2.42 0-4.4-2-4.4-4.47s1.98-4.47 4.4-4.47c1.38 0 2.3.59 2.83 1.1l1.93-1.86C11.66.98 10.08.3 8.16.3 3.98.3.6 3.66.6 7.86s3.38 7.56 7.56 7.56c4.36 0 7.26-3.07 7.26-7.4 0-.5-.05-.88-.12-1.26H8.16z"/></svg>
-        Continue with Google
-      </button>
 
       <p class="foot-note" id="footNote">
         New here? <a href="#" onclick="setMode('register');return false;" style="color:#E8934A;font-weight:600;">Create an account</a>

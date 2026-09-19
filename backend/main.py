@@ -23,7 +23,6 @@ sys.path.append(str(ROOT_DIR))
 
 from models import db, User, SystemConfiguration
 from auth import init_auth, authenticate_user, register_user, logout_user_session, validate_session
-from google_auth import init_google_auth
 from forecasting.forecast_generation import generate_forecast
 from training.train_prophet import train_prophet as train_prophet_model
 from forecast import register_forecast_routes
@@ -46,7 +45,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize database and auth
 db.init_app(app)
 init_auth(app)
-init_google_auth(app)
 
 # Create database tables
 with app.app_context():
